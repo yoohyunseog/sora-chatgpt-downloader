@@ -1,0 +1,79 @@
+{
+  "metadata": {
+    "created_at": "2025-07-25T13:25:00.000Z",
+    "version": "1.0.0",
+    "source": "Sora ChatGPT Auto Save Extension",
+    "total_images": 5,
+    "total_prompts": 3
+  },
+  "images": [
+    {
+      "id": "img_1",
+      "url": "https://example.com/image1.jpg",
+      "alt": "테스트 이미지 1",
+      "width": 512,
+      "height": 512,
+      "timestamp": "2025-07-25T13:25:00.000Z",
+      "pageUrl": "https://sora.chatgpt.com/library"
+    },
+    {
+      "id": "img_2", 
+      "url": "https://example.com/image2.jpg",
+      "alt": "테스트 이미지 2",
+      "width": 512,
+      "height": 512,
+      "timestamp": "2025-07-25T13:26:00.000Z",
+      "pageUrl": "https://sora.chatgpt.com/library"
+    },
+    {
+      "id": "img_3",
+      "url": "https://example.com/image3.jpg", 
+      "alt": "테스트 이미지 3",
+      "width": 512,
+      "height": 512,
+      "timestamp": "2025-07-25T13:27:00.000Z",
+      "pageUrl": "https://sora.chatgpt.com/library"
+    },
+    {
+      "id": "img_4",
+      "url": "https://example.com/image4.jpg",
+      "alt": "테스트 이미지 4",
+      "width": 512,
+      "height": 512,
+      "timestamp": "2025-07-25T13:28:00.000Z",
+      "pageUrl": "https://sora.chatgpt.com/library"
+    },
+    {
+      "id": "img_5",
+      "url": "https://example.com/image5.jpg",
+      "alt": "테스트 이미지 5",
+      "width": 512,
+      "height": 512,
+      "timestamp": "2025-07-25T13:29:00.000Z",
+      "pageUrl": "https://sora.chatgpt.com/library"
+    }
+  ],
+  "prompts": [
+    {
+      "id": "prompt_1",
+      "text": "아름다운 자연 풍경을 그려주세요",
+      "timestamp": "2025-07-25T13:25:00.000Z",
+      "pageUrl": "https://sora.chatgpt.com/library",
+      "selector": "p"
+    },
+    {
+      "id": "prompt_2", 
+      "text": "미래 도시의 밤 풍경을 그려주세요",
+      "timestamp": "2025-07-25T13:26:00.000Z",
+      "pageUrl": "https://sora.chatgpt.com/library",
+      "selector": "p"
+    },
+    {
+      "id": "prompt_3",
+      "text": "우주를 배경으로 한 우주선을 그려주세요",
+      "timestamp": "2025-07-25T13:27:00.000Z",
+      "pageUrl": "https://sora.chatgpt.com/library",
+      "selector": "p"
+    }
+  ]
+} 

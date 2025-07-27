@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Auto Save Extension",
+  "version": "1.0.0",
+  "description": "모든 페이지의 이미지와 프롬프트를 실시간으로 자동 저장하는 확장 프로그램",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs",
+    "scripting",
+    "downloads"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Auto Save"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["*.json"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+} 

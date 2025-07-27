@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Sora ChatGPT 자동 저장",
+  "version": "1.0.0",
+  "description": "Sora ChatGPT 라이브러리 페이지에서 이미지와 프롬프트를 자동으로 저장하는 확장 프로그램입니다.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://sora.chatgpt.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon_16.png",
+      "48": "icon_48.png",
+      "128": "icon_128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://sora.chatgpt.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "icons": {
+    "16": "icon_16.png",
+    "48": "icon_48.png",
+    "128": "icon_128.png"
+  }
+} 

@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "created_at": "2025-07-27T03:08:23.720Z",
+    "version": "1.0.0",
+    "source": "Sora ChatGPT Auto Save Extension (Page Control)",
+    "total_images": 1,
+    "total_prompts": 1,
+    "download_method": "current_page"
+  },
+  "images": [
+    {
+      "id": "img_1753585703718_2",
+      "url": "https://videos.openai.com/vg-assets/assets%2Ftask_01k14rryw4e48rvq603hgngskg%2F1753580669_img_0.webp?st=2025-07-27T01%3A34%3A03Z&se=2025-08-02T02%3A34%3A03Z&sks=b&skt=2025-07-27T01%3A34%3A03Z&ske=2025-08-02T02%3A34%3A03Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=8ebb0df1-a278-4e2e-9c20-f2d373479b3a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=MZAVpHQbi%2FVt9aG7%2B5YwscdUXo4o5%2ByXYxUFvLDTmd4%3D&az=oaivgprodscus",
+      "alt": "생성된 이미지",
+      "width": 1024,
+      "height": 1536,
+      "pageUrl": "https://sora.chatgpt.com/library",
+      "prompt": "붉은 경찰의 탐험가",
+      "originalPrompt": "붉은 경찰의 탐험가즉각적인광활한 붉은 사막 풍경을 배경으로, 고대의 탐구자들이 남아있는 탐험가들이 사막을 가로질러 노력하는 모습. 해가 저물어 붉은 빛으로 물든 하늘과 먼 곳에 있고 나머지가 조화를 이루며, 탐험가들은 의상을 입고 고대의 비밀을 찾아오고 있습니다.오전 10시 43분",
+      "title": ""
+    }
+  ],
+  "prompts": [
+    {
+      "id": "prompt_1753585703719_21",
+      "text": "일몰의 사막 탐험즉각적인광 경찰의 탐험가가 즉각적인 붉은활한 붉은 경찰 풍경을 배경으로, 고대의 추구자들이 남아있는 탐험가들이 사막을 가로질러 노력하는 모습. 해가 저물어 붉은 빛으로 물든 하늘과 먼 곳에 있고 나머지가 조화를 이루며, 탐험가들은 의상을 입고 고대의 비밀을 찾고 있습니다.오전 10시 43분480p5초오후 12시",
+      "timestamp": "2025-07-27T03:08:23.719Z",
+      "pageUrl": "https://sora.chatgpt.com/library",
+      "selector": "[class*=\"text\"]"
+    }
+  ]
+}

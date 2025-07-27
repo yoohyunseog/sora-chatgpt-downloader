@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Sora JSON 테스트</title>
+</head>
+<body>
+  <h1>JSON 데이터 출력</h1>
+  <pre id="output">로딩 중...</pre>
+
+  <script>
+    fetch("http://localhost:8000/data.json")
+      .then(res => res.json())
+      .then(data => {
+        console.log(data);
+        document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+      })
+      .catch(err => {
+        document.getElementById("output").textContent = "❌ 오류 발생: " + err;
+      });
+  </script>
+</body>
+</html>

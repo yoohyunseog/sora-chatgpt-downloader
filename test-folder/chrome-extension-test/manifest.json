@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "프롬프트 테스트 확장 프로그램",
+  "version": "1.0.0",
+  "description": "프롬프트 데이터를 로드하고 테스트하는 크롬 확장 프로그램",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs",
+    "alarms",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "프롬프트 테스트"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["data.json", "*.json", "progress.html", "progress.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+} 

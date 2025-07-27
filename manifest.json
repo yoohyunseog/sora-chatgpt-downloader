@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+      "name": "Sora Auto Image Downloader v2.3.0",
+  "version": "2.3.0",
+      "description": "Sora 페이지에서 이미지 자동 생성 및 다운로드 + JSON 기반 프롬프트 소모형 자동화 시스템 + 자동화 ON 상태에서 수동 프롬프트 처리 + Image trashed 오류 자동 재시도",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Sora Auto Image Downloader v2.3.0 - Image trashed 오류 자동 재시도"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://sora.chatgpt.com/*", "*://sora.openai.com/*"],
+      "js": ["content.js", "json_automation.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["data/*.json", "extension_data/*.json"],
+      "matches": ["*://sora.chatgpt.com/*", "*://sora.openai.com/*"]
+    }
+  ],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+} 
