@@ -1,0 +1,16 @@
+2025-07-26 20:59:18,843 - INFO - === Sora Auto Save 파일 정리 프로그램 시작 ===
+2025-07-26 20:59:18,844 - INFO - 설정 파일 로드됨: file_organizer_config.json
+2025-07-26 20:59:18,844 - INFO - === 파일 정리 시작 ===
+2025-07-26 20:59:18,844 - INFO - 파일 검색 패턴: E:\Download\sora_auto_save_*.json
+2025-07-26 20:59:18,846 - INFO - 발견된 파일 수: 1
+2025-07-26 20:59:18,847 - INFO -   - sora_auto_save_2025-07-26T11-59-15.json
+2025-07-26 20:59:18,847 - INFO - 최신 파일: sora_auto_save_2025-07-26T11-59-15.json
+2025-07-26 20:59:18,848 - INFO - 수정 시간: 2025-07-26 20:59:16.253180
+2025-07-26 20:59:18,859 - INFO - JSON 파일 유효성 검사 통과: sora_auto_save_2025-07-26T11-59-15.json
+2025-07-26 20:59:18,859 - INFO -   - 이미지: 1109개
+2025-07-26 20:59:18,859 - INFO -   - 프롬프트: 152개
+2025-07-26 20:59:18,863 - INFO - 파일 복사 완료: sora_auto_save_2025-07-26T11-59-15.json → E:\Ai project\nb_wfa\sora-auto-image\auto-save-json-test\data\sora_auto_save.json
+2025-07-26 20:59:18,863 - INFO - 파일 정리 완료: E:\Ai project\nb_wfa\sora-auto-image\auto-save-json-test\data\sora_auto_save.json
+2025-07-26 20:59:18,863 - INFO - 백업 폴더: E:\Ai project\nb_wfa\chatbot\full_screenshot\data
+2025-07-26 20:59:18,864 - INFO - 백업 완료: sora_auto_save_2025-07-26T11-59-15.json → sora_auto_save_2025-07-26T11-59-15.json
+2025-07-26 20:59:18,867 - INFO - 오래된 백업 파일 삭제: data.json

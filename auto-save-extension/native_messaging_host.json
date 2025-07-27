@@ -1,9 +1,0 @@
-{
-  "name": "com.auto.save.extension",
-  "description": "Auto Save Extension Native Messaging Host",
-  "path": "file_saver.py",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://__MSG_@@extension_id__/"
-  ]
-} 
