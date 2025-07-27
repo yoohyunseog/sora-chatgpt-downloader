@@ -75,7 +75,6 @@ sora-auto-image/
 │   ├── file_organizer_gui.py      # GUI 인터페이스
 │   ├── simple_gui.py              # 간단한 GUI
 │   ├── file_saver.py              # 파일 저장 도구
-│   ├── file_saver.exe             # 실행 파일
 │   ├── README.md                  # 상세 사용법
 │   ├── README_file_organizer.md   # 파일 정리 도구 설명
 │   └── ... (기타 설정 파일들)
