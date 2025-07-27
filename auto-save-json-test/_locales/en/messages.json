@@ -1,0 +1,186 @@
+{
+  "appName": {
+    "message": "Sora ChatGPT Auto Save Pro",
+    "description": "Extension name"
+  },
+  "appDescription": {
+    "message": "Advanced auto save extension for Sora ChatGPT library with enhanced features",
+    "description": "Extension description"
+  },
+  "autoSave": {
+    "message": "Auto Save",
+    "description": "Auto save toggle label"
+  },
+  "autoSaveOn": {
+    "message": "Auto Save ON",
+    "description": "Auto save enabled"
+  },
+  "autoSaveOff": {
+    "message": "Auto Save OFF",
+    "description": "Auto save disabled"
+  },
+  "saveInterval": {
+    "message": "Save Interval",
+    "description": "Save interval label"
+  },
+  "seconds": {
+    "message": "seconds",
+    "description": "Seconds unit"
+  },
+  "countdown": {
+    "message": "Countdown",
+    "description": "Countdown label"
+  },
+  "manualSave": {
+    "message": "Manual Save",
+    "description": "Manual save button"
+  },
+  "downloadJson": {
+    "message": "Download JSON",
+    "description": "Download JSON button"
+  },
+  "clearData": {
+    "message": "Clear Data",
+    "description": "Clear data button"
+  },
+  "settings": {
+    "message": "Settings",
+    "description": "Settings label"
+  },
+  "language": {
+    "message": "Language",
+    "description": "Language setting"
+  },
+  "english": {
+    "message": "English",
+    "description": "English language option"
+  },
+  "korean": {
+    "message": "한국어",
+    "description": "Korean language option"
+  },
+  "status": {
+    "message": "Status",
+    "description": "Status label"
+  },
+  "imagesCollected": {
+    "message": "Images Collected",
+    "description": "Images collected count"
+  },
+  "promptsCollected": {
+    "message": "Prompts Collected",
+    "description": "Prompts collected count"
+  },
+  "lastSave": {
+    "message": "Last Save",
+    "description": "Last save time"
+  },
+  "nextSave": {
+    "message": "Next Save",
+    "description": "Next save time"
+  },
+  "saving": {
+    "message": "Saving...",
+    "description": "Saving status"
+  },
+  "saved": {
+    "message": "Saved!",
+    "description": "Saved status"
+  },
+  "error": {
+    "message": "Error",
+    "description": "Error message"
+  },
+  "noData": {
+    "message": "No data collected yet",
+    "description": "No data message"
+  },
+  "confirmClear": {
+    "message": "Are you sure you want to clear all data?",
+    "description": "Clear data confirmation"
+  },
+  "yes": {
+    "message": "Yes",
+    "description": "Yes button"
+  },
+  "no": {
+    "message": "No",
+    "description": "No button"
+  },
+  "cancel": {
+    "message": "Cancel",
+    "description": "Cancel button"
+  },
+  "ok": {
+    "message": "OK",
+    "description": "OK button"
+  },
+  "close": {
+    "message": "Close",
+    "description": "Close button"
+  },
+  "save": {
+    "message": "Save",
+    "description": "Save button"
+  },
+  "reset": {
+    "message": "Reset",
+    "description": "Reset button"
+  },
+  "about": {
+    "message": "About",
+    "description": "About section"
+  },
+  "version": {
+    "message": "Version",
+    "description": "Version label"
+  },
+  "developer": {
+    "message": "Developer",
+    "description": "Developer label"
+  },
+  "github": {
+    "message": "GitHub",
+    "description": "GitHub link"
+  },
+  "help": {
+    "message": "Help",
+    "description": "Help section"
+  },
+  "howToUse": {
+    "message": "How to Use",
+    "description": "How to use instructions"
+  },
+  "step1": {
+    "message": "1. Go to Sora ChatGPT library page",
+    "description": "Step 1 instruction"
+  },
+  "step2": {
+    "message": "2. Turn on Auto Save",
+    "description": "Step 2 instruction"
+  },
+  "step3": {
+    "message": "3. Wait for data collection",
+    "description": "Step 3 instruction"
+  },
+  "step4": {
+    "message": "4. Download JSON file",
+    "description": "Step 4 instruction"
+  },
+  "advancedFeatures": {
+    "message": "Advanced Features",
+    "description": "Advanced features section"
+  },
+  "realTimeMonitoring": {
+    "message": "Real-time Monitoring",
+    "description": "Real-time monitoring feature"
+  },
+  "smartFiltering": {
+    "message": "Smart Filtering",
+    "description": "Smart filtering feature"
+  },
+  "detailedLogging": {
+    "message": "Detailed Logging",
+    "description": "Detailed logging feature"
+  }
+} 
