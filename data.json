@@ -1,0 +1,35 @@
+{
+  "name": "Sora Auto Image Downloader - Crimson Desert, 게임 피드백, 플레이어 의견, 게임 개발",
+  "version": "2.2.0",
+  "description": "Crimson Desert, 게임 피드백, 플레이어 의견, 게임 개발 주제의 이미지 생성을 위한 프롬프트 모음",
+  "metadata": {
+    "created": "2025-07-27",
+    "lastModified": "2025-07-27",
+    "author": "GPT-4o-mini Auto Generator",
+    "topic": "Crimson Desert, 게임 피드백, 플레이어 의견, 게임 개발",
+    "totalPrompts": 1
+  },
+  "prompts": [
+    {
+      "title": "Crimson Desert의 플레이어 피드백",
+      "category": "기타",
+      "content": "Crimson Desert의 게임 플레이 중 한 장면을 배경으로, 다양한 플레이어들이 게임에 대한 피드백을 주고받는 모습. 각 플레이어는 캐릭터를 조작하며 자신만의 스타일로 전투를 진행하고 있으며, 화면 한쪽에는 플레이어 의견이 적힌 대화 상자가 떠있다. 피드백은 그래픽, 스토리, 게임성에 대한 내용이 포함되어 있다.",
+      "tags": [
+        "Crimson Desert",
+        "게임 피드백",
+        "플레이어 의견",
+        "게임 개발"
+      ],
+      "expectedResult": "다양한 플레이어들이 각기 다른 캐릭터로 전투를 하면서, 게임에 대한 의견을 나누는 장면을 통해 게임의 커뮤니티와 피드백 문화가 잘 드러난 이미지.",
+      "status": "대기"
+    }
+  ],
+  "settings": {
+    "enabled": true,
+    "autoLoad": true,
+    "theme": "dark",
+    "language": "ko"
+  },
+  "images": [],
+  "status": "ready"
+}
