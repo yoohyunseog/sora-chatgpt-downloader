@@ -1,8 +1,20 @@
 // Sora ChatGPT 라이브러리 페이지에서 이미지와 프롬프트 수집
 
+// Chrome i18n 지원 함수들
+function getCurrentLanguage() {
+    return chrome.i18n.getUILanguage().split('-')[0] || 'en';
+}
+
+function getLocalizedMessage(messageKey, substitutions = []) {
+    return chrome.i18n.getMessage(messageKey, substitutions) || messageKey;
+}
+
 // 이미지와 프롬프트 데이터 저장소
 let savedImages = [];
 let savedPrompts = [];
+
+// 언어 설정
+let currentLanguage = 'en';
 
 // 페이지 컨트롤 패널
 let controlPanel = null;
@@ -13,17 +25,43 @@ let pageCountdownTimer = null;
 let pageCountdownInterval = null;
 
 // 페이지 로드 시 기존 데이터 불러오기
-chrome.storage.local.get(['savedImages', 'savedPrompts'], function(result) {
+chrome.storage.local.get(['savedImages', 'savedPrompts', 'language'], function(result) {
   if (result.savedImages) {
     savedImages = result.savedImages;
   }
   if (result.savedPrompts) {
     savedPrompts = result.savedPrompts;
   }
-  console.log('기존 데이터 로드됨:', {
+  
+  // 언어 설정 로드
+  if (result.language) {
+    currentLanguage = result.language;
+  }
+  
+  console.log(getLocalizedMessage('consoleLogs.existingDataLoaded'), {
     images: savedImages.length,
-    prompts: savedPrompts.length
+    prompts: savedPrompts.length,
+    language: currentLanguage
   });
+});
+
+// Chrome 저장소 변경 감지 (실시간 언어 변경)
+chrome.storage.onChanged.addListener(function(changes, namespace) {
+  if (namespace === 'local' && changes.language) {
+    const newLanguage = changes.language.newValue;
+    if (newLanguage && newLanguage !== currentLanguage) {
+      console.log('언어 설정 변경 감지:', newLanguage);
+      changePanelLanguage(newLanguage);
+    }
+  }
+});
+
+// 팝업으로부터의 메시지 수신
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === 'languageChanged') {
+    console.log('팝업으로부터 언어 변경 메시지 수신:', request.language);
+    changePanelLanguage(request.language);
+  }
 });
 
 // 페이지 카운트다운 시작
@@ -51,7 +89,7 @@ function startPageCountdown(seconds) {
       pageCountdownInterval = null;
       
       // 페이지에서 직접 저장 실행
-      console.log('카운트다운 완료 - 페이지에서 직접 저장 실행');
+      console.log(getLocalizedMessage('consoleLogs.countdownComplete'));
       const result = saveImagesAndPrompts();
       
       // 자동 다운로드 확인
@@ -59,7 +97,7 @@ function startPageCountdown(seconds) {
       if (autoDownloadEnabled && result.success) {
         setTimeout(() => {
           performDownload();
-          console.log('자동 다운로드 완료');
+          console.log(getLocalizedMessage('consoleLogs.autoDownloadComplete'));
         }, 1000);
       }
       
@@ -124,9 +162,20 @@ function createControlPanel() {
     </div>
     
     <div id="panel-content">
+      <!-- 언어 설정 -->
+      <div style="margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 12px;" id="language-label">언어</span>
+          <select id="page-language-selector" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+            <option value="ko">한국어</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+      
       <div style="margin-bottom: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <span style="font-size: 12px;">자동 저장</span>
+          <span style="font-size: 12px;" id="auto-save-label">자동 저장</span>
           <label class="toggle-switch" style="width: 40px; height: 20px; margin: 0;">
             <input type="checkbox" id="page-auto-save-toggle" style="opacity: 0; width: 0; height: 0;">
             <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.3); transition: .4s; border-radius: 20px;">
@@ -136,7 +185,7 @@ function createControlPanel() {
         </div>
         
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <span style="font-size: 12px;">자동 다운로드</span>
+          <span style="font-size: 12px;" id="auto-download-label">자동 다운로드</span>
           <label class="toggle-switch" style="width: 40px; height: 20px; margin: 0;">
             <input type="checkbox" id="page-auto-download-toggle" style="opacity: 0; width: 0; height: 0;">
             <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.3); transition: .4s; border-radius: 20px;">
@@ -157,7 +206,7 @@ function createControlPanel() {
       </div>
       
       <div id="page-countdown" style="display: none; text-align: center; margin-top: 8px; font-size: 12px; font-weight: bold; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 8px;">
-        ⏰ 다음 저장까지: <span id="page-countdown-number" style="color: #ffeb3b;">30</span>초
+        <span id="countdown-text">⏰ 다음 저장까지:</span> <span id="page-countdown-number" style="color: #ffeb3b;">30</span><span id="countdown-unit">초</span>
       </div>
       
       <div id="page-status" style="font-size: 10px; text-align: center; margin-top: 8px; color: rgba(255,255,255,0.8);">
@@ -173,14 +222,31 @@ function createControlPanel() {
   // 이벤트 리스너 추가
   addPanelEventListeners();
   
+  // 초기 텍스트 설정
+  updatePanelTexts();
+  
   // 초기 상태 설정
   loadPanelState();
   
-  console.log('페이지 컨트롤 패널 생성 완료');
+  console.log(getLocalizedMessage('consoleLogs.controlPanelCreated'));
 }
 
 // 패널 이벤트 리스너 추가
 function addPanelEventListeners() {
+  // 언어 선택기
+  const languageSelector = document.getElementById('page-language-selector');
+  if (languageSelector) {
+    // 현재 언어 설정
+    languageSelector.value = currentLanguage;
+    
+    // 언어 변경 이벤트
+    languageSelector.addEventListener('change', function() {
+      const newLanguage = this.value;
+      console.log('언어 변경 요청:', newLanguage);
+      changePanelLanguage(newLanguage);
+    });
+  }
+  
   // 최소화 버튼
   document.getElementById('minimize-panel').addEventListener('click', function() {
     const content = document.getElementById('panel-content');
@@ -202,11 +268,11 @@ function addPanelEventListeners() {
     if (isEnabled) {
       // 페이지에서 직접 카운트다운 시작 (백그라운드 통신 없이)
       startPageCountdown(30);
-      console.log('페이지에서 자동 저장 시작 (직접 실행)');
+      console.log(getLocalizedMessage('consoleLogs.autoSaveStarted'));
     } else {
       // 카운트다운 중지
       stopPageCountdown();
-      console.log('페이지에서 자동 저장 중지');
+      console.log(getLocalizedMessage('consoleLogs.autoSaveStopped'));
     }
     
     // 상태 저장
@@ -220,18 +286,18 @@ function addPanelEventListeners() {
     // 상태 저장
     savePanelState();
     
-    console.log('페이지에서 자동 다운로드 토글:', isEnabled ? 'ON' : 'OFF');
+    console.log(getLocalizedMessage('consoleLogs.autoDownloadToggle'), isEnabled ? 'ON' : 'OFF');
   });
   
   // 수동 저장 버튼
   document.getElementById('page-manual-save').addEventListener('click', function() {
-    console.log('페이지에서 수동 저장 실행');
+    console.log(getLocalizedMessage('consoleLogs.manualSaveExecuted'));
     
     // 페이지에서 직접 저장 실행
     const result = saveImagesAndPrompts();
     
     if (result.success) {
-      console.log('수동 저장 완료:', result);
+      console.log(getLocalizedMessage('consoleLogs.manualSaveComplete'), result);
       updatePageStats();
       
       // 버튼 효과
@@ -252,7 +318,7 @@ function addPanelEventListeners() {
   
   // 다운로드 버튼
   document.getElementById('page-download').addEventListener('click', function() {
-    console.log('페이지에서 다운로드 실행');
+    console.log(getLocalizedMessage('consoleLogs.downloadExecuted'));
     performDownload();
     
     // 버튼 효과
@@ -317,7 +383,7 @@ function savePanelState() {
     if (result && result.success === false) {
       console.error('❌ 패널 상태 저장 실패:', result.error);
     } else {
-      console.log('✅ 패널 상태 저장 완료');
+      console.log(getLocalizedMessage('consoleLogs.panelStateSaved'));
     }
   });
 }
@@ -347,6 +413,145 @@ function loadPanelState() {
   });
 }
 
+// 언어 변경 함수
+function changePanelLanguage(language) {
+  currentLanguage = language;
+  
+  // 언어 설정 저장
+  safeChromeStorageSet({ language: language }, function() {
+    console.log('언어 설정 저장 완료:', language);
+  });
+  
+  // 패널 텍스트 업데이트
+  updatePanelTexts();
+  
+  // 통계도 업데이트
+  updatePageStats();
+  
+  // 카운트다운이 활성화되어 있다면 텍스트 업데이트
+  const countdown = document.getElementById('page-countdown');
+  if (countdown && countdown.style.display !== 'none') {
+    updateCountdownText();
+  }
+  
+  // 언어 선택기 업데이트
+  const languageSelector = document.getElementById('page-language-selector');
+  if (languageSelector) {
+    languageSelector.value = language;
+  }
+  
+  // 시각적 피드백 (패널 깜빡임)
+  if (controlPanel) {
+    controlPanel.style.transition = 'all 0.3s ease';
+    controlPanel.style.transform = 'scale(1.02)';
+    controlPanel.style.boxShadow = '0 12px 40px rgba(0,0,0,0.4)';
+    
+    setTimeout(() => {
+      controlPanel.style.transform = 'scale(1)';
+      controlPanel.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)';
+    }, 300);
+  }
+  
+  console.log('언어 변경 완료:', language);
+}
+
+// 패널 텍스트 업데이트
+function updatePanelTexts() {
+  const texts = {
+    ko: {
+      language: '언어',
+      autoSave: '자동 저장',
+      autoDownload: '자동 다운로드',
+      manualSave: '📸 수동 저장',
+      download: '💾 다운로드',
+      stats: '📊 저장 통계',
+      countdown: '⏰ 다음 저장까지:',
+      status: '페이지에서 직접 실행'
+    },
+    en: {
+      language: 'Language',
+      autoSave: 'Auto Save',
+      autoDownload: 'Auto Download',
+      manualSave: '📸 Manual Save',
+      download: '💾 Download',
+      stats: '📊 Save Stats',
+      countdown: '⏰ Next save in:',
+      status: 'Direct execution from page'
+    }
+  };
+  
+  const currentTexts = texts[currentLanguage] || texts.en;
+  
+  // 패널이 존재하는지 확인
+  if (!controlPanel || !document.getElementById('language-label')) {
+    console.log('패널이 아직 생성되지 않음, 텍스트 업데이트 건너뜀');
+    return;
+  }
+  
+  // 언어 라벨 업데이트
+  const languageLabel = document.getElementById('language-label');
+  if (languageLabel) {
+    languageLabel.textContent = currentTexts.language;
+  }
+  
+  // 자동 저장 라벨 업데이트
+  const autoSaveLabel = document.getElementById('auto-save-label');
+  if (autoSaveLabel) {
+    autoSaveLabel.textContent = currentTexts.autoSave;
+  }
+  
+  // 자동 다운로드 라벨 업데이트
+  const autoDownloadLabel = document.getElementById('auto-download-label');
+  if (autoDownloadLabel) {
+    autoDownloadLabel.textContent = currentTexts.autoDownload;
+  }
+  
+  // 버튼 텍스트 업데이트
+  const manualSaveBtn = document.getElementById('page-manual-save');
+  if (manualSaveBtn) {
+    manualSaveBtn.textContent = currentTexts.manualSave;
+  }
+  
+  const downloadBtn = document.getElementById('page-download');
+  if (downloadBtn) {
+    downloadBtn.textContent = currentTexts.download;
+  }
+  
+  // 상태 텍스트 업데이트
+  const statusDiv = document.getElementById('page-status');
+  if (statusDiv) {
+    statusDiv.textContent = currentTexts.status;
+  }
+  
+  // 카운트다운 텍스트 업데이트
+  const countdownText = document.getElementById('countdown-text');
+  const countdownUnit = document.getElementById('countdown-unit');
+  if (countdownText) {
+    countdownText.textContent = currentTexts.countdown;
+  }
+  if (countdownUnit) {
+    countdownUnit.textContent = currentLanguage === 'ko' ? '초' : 's';
+  }
+  
+  console.log('패널 텍스트 업데이트 완료:', currentLanguage);
+}
+
+// 카운트다운 텍스트 업데이트
+function updateCountdownText() {
+  const countdownText = document.getElementById('countdown-text');
+  const countdownUnit = document.getElementById('countdown-unit');
+  
+  if (countdownText) {
+    const text = currentLanguage === 'ko' ? '⏰ 다음 저장까지:' : '⏰ Next save in:';
+    countdownText.textContent = text;
+  }
+  
+  if (countdownUnit) {
+    const unit = currentLanguage === 'ko' ? '초' : 's';
+    countdownUnit.textContent = unit;
+  }
+}
+
 // 페이지 통계 업데이트
 function updatePageStats() {
   safeChromeStorageGet(['savedImages', 'savedPrompts'], function(result) {
@@ -361,22 +566,23 @@ function updatePageStats() {
     const imageCount = result.savedImages ? result.savedImages.length : 0;
     const promptCount = result.savedPrompts ? result.savedPrompts.length : 0;
     
-    stats.innerHTML = `
-      📊 저장 통계<br>
-      이미지: ${imageCount}개 | 프롬프트: ${promptCount}개
-    `;
+    const statsText = currentLanguage === 'ko' 
+      ? `📊 저장 통계<br>이미지: ${imageCount}개 | 프롬프트: ${promptCount}개`
+      : `📊 Save Stats<br>Images: ${imageCount} | Prompts: ${promptCount}`;
+    
+    stats.innerHTML = statsText;
   });
 }
 
 // 다운로드 실행
 function performDownload() {
-  console.log('다운로드 시작...');
+  console.log(getLocalizedMessage('consoleLogs.downloadStarted'));
   
   // 먼저 현재 페이지에서 직접 데이터 수집 시도
   const currentImages = collectImages();
   const currentPrompts = collectPrompts();
   
-  console.log('현재 수집된 데이터:', {
+  console.log(getLocalizedMessage('consoleLogs.currentCollectedData'), {
     images: currentImages.length,
     prompts: currentPrompts.length
   });
@@ -389,7 +595,7 @@ function performDownload() {
     if (result && result.success !== false) {
       savedImages = result.savedImages || [];
       savedPrompts = result.savedPrompts || [];
-      console.log('저장된 데이터:', {
+      console.log(getLocalizedMessage('consoleLogs.savedData'), {
         images: savedImages.length,
         prompts: savedPrompts.length
       });
@@ -412,7 +618,7 @@ function performDownload() {
       prompts: finalPrompts
     };
     
-    console.log('다운로드할 데이터:', {
+    console.log(getLocalizedMessage('consoleLogs.downloadData'), {
       total_images: data.images.length,
       total_prompts: data.prompts.length,
       method: data.metadata.download_method
@@ -443,8 +649,8 @@ function performDownload() {
         URL.revokeObjectURL(url);
       }, 1000);
       
-      console.log('✅ 다운로드 완료:', a.download);
-      console.log('파일 크기:', blob.size, 'bytes');
+      console.log(getLocalizedMessage('consoleLogs.downloadComplete'), a.download);
+      console.log(getLocalizedMessage('consoleLogs.fileSize'), blob.size, 'bytes');
       
     } catch (error) {
       console.error('❌ 다운로드 중 오류:', error);
@@ -454,12 +660,12 @@ function performDownload() {
 
 // 이미지 수집 함수
 function collectImages() {
-  console.log('이미지 수집 시작');
+  console.log(getLocalizedMessage('consoleLogs.imageCollectionStarted'));
   
   // 모든 이미지 컨테이너 찾기 (data-index 속성을 가진 div들)
   const imageContainers = document.querySelectorAll('[data-index]');
   
-  console.log(`발견된 이미지 컨테이너: ${imageContainers.length}개`);
+  console.log(getLocalizedMessage('consoleLogs.imageContainersFound', [imageContainers.length.toString()]));
   
   // 첫 번째 완성된 이미지만 찾기
   for (let i = 0; i < imageContainers.length; i++) {
@@ -498,8 +704,8 @@ function collectImages() {
           title: titleText
         };
         
-        console.log(`컨테이너 ${containerIndex} - 첫 번째 완성된 이미지 발견:`, imgSrc.substring(0, 50) + '...');
-        console.log(`연결된 프롬프트:`, cleanPrompt.substring(0, 50) + '...');
+        console.log(getLocalizedMessage('consoleLogs.completedImageFound', [containerIndex]), imgSrc.substring(0, 50) + '...');
+        console.log(getLocalizedMessage('consoleLogs.connectedPrompt'), cleanPrompt.substring(0, 50) + '...');
         
         // 첫 번째 이미지만 반환
         return [imageData];
@@ -507,7 +713,7 @@ function collectImages() {
     }
   }
   
-  console.log('완성된 이미지를 찾을 수 없음');
+  console.log(getLocalizedMessage('consoleLogs.noCompletedImageFound'));
   return [];
 }
 
@@ -540,7 +746,7 @@ function getCurrentPagePrompt() {
 
 // 프롬프트 수집 함수
 function collectPrompts() {
-  console.log('프롬프트 수집 시작');
+  console.log(getLocalizedMessage('consoleLogs.promptCollectionStarted'));
   const promptSelectors = [
     '[data-testid="prompt-text"]',
     '.prompt-text',

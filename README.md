@@ -1,114 +1,114 @@
-# �� Sora ChatGPT 자동 저장 확장 프로그램
+# 🎨 Sora ChatGPT Auto Save Extension
 
-Sora ChatGPT 라이브러리에서 이미지와 프롬프트를 자동으로 수집하는 Chrome 확장 프로그램 모음입니다.
+Chrome extension collection for automatically collecting images and prompts from Sora ChatGPT library.
 
-## 📦 프로젝트 구성
+## 📦 Project Structure
 
-### 🔄 **chrome-extension-test** - 기본 자동 저장 확장 프로그램
-- Sora ChatGPT 라이브러리에서 이미지와 프롬프트 자동 수집
-- 30초마다 자동 저장 (설정 가능)
-- 실시간 카운트다운 표시
-- JSON 형태로 데이터 다운로드
-- 간단하고 직관적인 인터페이스
+### 🔄 **chrome-extension-test** - Basic Auto Save Extension
+- Automatic collection of images and prompts from Sora ChatGPT library
+- Auto save every 30 seconds (configurable)
+- Real-time countdown display
+- JSON format data download
+- Simple and intuitive interface
 
-### 🗂️ **auto-save-json-test** - 고급 자동 저장 확장 프로그램
-- 기본 기능 + 고급 설정 옵션
-- 더 상세한 데이터 수집
-- 향상된 UI/UX
-- 고급 로깅 및 에러 처리
-- 확장된 설정 기능
+### 🗂️ **auto-save-json-test** - Advanced Auto Save Extension
+- Basic features + advanced configuration options
+- More detailed data collection
+- Enhanced UI/UX
+- Advanced logging and error handling
+- Extended settings functionality
 
-## 🚀 빠른 시작
+## 🚀 Quick Start
 
-### 1. 기본 확장 프로그램 설치 (chrome-extension-test)
+### 1. Install Basic Extension (chrome-extension-test)
 ```bash
-# Chrome 브라우저에서
-1. chrome://extensions/ 접속
-2. "개발자 모드" 활성화
-3. "압축해제된 확장 프로그램을 로드합니다" 클릭
-4. chrome-extension-test 폴더 선택
+# In Chrome browser
+1. Go to chrome://extensions/
+2. Enable "Developer mode"
+3. Click "Load unpacked extension"
+4. Select chrome-extension-test folder
 ```
 
-### 2. 고급 확장 프로그램 설치 (auto-save-json-test)
+### 2. Install Advanced Extension (auto-save-json-test)
 ```bash
-# Chrome 브라우저에서
-1. chrome://extensions/ 접속
-2. "개발자 모드" 활성화
-3. "압축해제된 확장 프로그램을 로드합니다" 클릭
-4. auto-save-json-test 폴더 선택
+# In Chrome browser
+1. Go to chrome://extensions/
+2. Enable "Developer mode"
+3. Click "Load unpacked extension"
+4. Select auto-save-json-test folder
 ```
 
-## ✨ 주요 기능
+## ✨ Key Features
 
-### 🔄 자동 저장 시스템
-- **30초마다 자동 저장**: 설정 가능한 간격 (10초~3600초)
-- **실시간 카운트다운**: 다음 저장까지 남은 시간 표시
-- **중복 방지**: 이미 저장된 데이터는 건너뜀
-- **실시간 감지**: 페이지 변경 시 자동 새 데이터 수집
+### 🔄 Auto Save System
+- **Auto save every 30 seconds**: Configurable interval (10-3600 seconds)
+- **Real-time countdown**: Display time remaining until next save
+- **Duplicate prevention**: Skip already saved data
+- **Real-time detection**: Automatically collect new data when page changes
 
-### 📸 데이터 수집
-- **이미지 수집**: URL, 크기, alt 텍스트, 메타데이터
-- **프롬프트 수집**: 텍스트, 타임스탬프, 페이지 정보
-- **JSON 형식**: 구조화된 데이터로 저장
+### 📸 Data Collection
+- **Image collection**: URL, size, alt text, metadata
+- **Prompt collection**: Text, timestamp, page information
+- **JSON format**: Structured data storage
 
-### 🎯 사용자 인터페이스
-- **직관적인 팝업**: 간편한 설정 및 제어
-- **실시간 상태 표시**: 현재 작업 상태 확인
-- **원클릭 다운로드**: 수집된 데이터 즉시 다운로드
+### 🎯 User Interface
+- **Intuitive popup**: Easy settings and control
+- **Real-time status display**: Check current operation status
+- **One-click download**: Instant download of collected data
 
-## 📁 폴더 구조
+## 📁 Folder Structure
 
 ```
 sora-auto-image/
-├── chrome-extension-test/          # 기본 자동 저장 확장 프로그램
-│   ├── manifest.json              # 확장 프로그램 설정
-│   ├── popup.html                 # 팝업 인터페이스
-│   ├── popup.js                   # 팝업 로직
-│   ├── content.js                 # 페이지 콘텐츠 스크립트
-│   ├── background.js              # 백그라운드 스크립트
-│   └── data.json                  # 샘플 데이터
-├── auto-save-json-test/            # 고급 자동 저장 확장 프로그램
-│   ├── manifest.json              # 확장 프로그램 설정
-│   ├── popup.html                 # 고급 팝업 인터페이스
-│   ├── popup.js                   # 고급 팝업 로직
-│   ├── content.js                 # 고급 콘텐츠 스크립트
-│   ├── background.js              # 백그라운드 스크립트
-│   ├── icon_16.png               # 16x16 아이콘
-│   ├── icon_48.png               # 48x48 아이콘
-│   ├── icon_128.png              # 128x128 아이콘
-│   └── README.md                 # 상세 사용법
-├── .gitignore                     # Git 제외 파일 설정
-└── README.md                      # 이 파일
+├── chrome-extension-test/          # Basic auto save extension
+│   ├── manifest.json              # Extension configuration
+│   ├── popup.html                 # Popup interface
+│   ├── popup.js                   # Popup logic
+│   ├── content.js                 # Page content script
+│   ├── background.js              # Background script
+│   └── data.json                  # Sample data
+├── auto-save-json-test/            # Advanced auto save extension
+│   ├── manifest.json              # Extension configuration
+│   ├── popup.html                 # Advanced popup interface
+│   ├── popup.js                   # Advanced popup logic
+│   ├── content.js                 # Advanced content script
+│   ├── background.js              # Background script
+│   ├── icon_16.png               # 16x16 icon
+│   ├── icon_48.png               # 48x48 icon
+│   ├── icon_128.png              # 128x128 icon
+│   └── README.md                 # Detailed usage guide
+├── .gitignore                     # Git ignore file settings
+└── README.md                      # This file (Korean)
 ```
 
-## 🎯 사용 시나리오
+## 🎯 Usage Scenarios
 
-### 시나리오 1: 간단한 자동 저장
-1. **chrome-extension-test** 설치
-2. Sora ChatGPT 라이브러리 페이지 접속
-3. 자동 저장 ON 설정
-4. 30초마다 자동으로 데이터 수집
+### Scenario 1: Simple Auto Save
+1. Install **chrome-extension-test**
+2. Access Sora ChatGPT library page
+3. Turn on auto save
+4. Automatically collect data every 30 seconds
 
-### 시나리오 2: 고급 데이터 수집
-1. **auto-save-json-test** 설치
-2. 고급 설정으로 자동 저장 간격 조정
-3. 상세한 로깅 및 모니터링
-4. 향상된 데이터 수집 기능 활용
+### Scenario 2: Advanced Data Collection
+1. Install **auto-save-json-test**
+2. Adjust auto save interval with advanced settings
+3. Detailed logging and monitoring
+4. Utilize enhanced data collection features
 
-### 시나리오 3: 대량 데이터 수집
-1. 고급 확장 프로그램 설치
-2. 자동 저장 간격을 10초로 설정
-3. 장시간 수집 실행
-4. JSON 파일로 데이터 다운로드
+### Scenario 3: Bulk Data Collection
+1. Install advanced extension
+2. Set auto save interval to 10 seconds
+3. Run long-term collection
+4. Download data as JSON file
 
-## 📊 수집되는 데이터 형식
+## 📊 Data Format
 
-### 이미지 데이터
+### Image Data
 ```json
 {
   "id": "img_1234567890_0",
   "url": "https://example.com/image.jpg",
-  "alt": "이미지 설명",
+  "alt": "Image description",
   "width": 1024,
   "height": 768,
   "timestamp": "2025-01-27T12:00:00.000Z",
@@ -116,121 +116,121 @@ sora-auto-image/
 }
 ```
 
-### 프롬프트 데이터
+### Prompt Data
 ```json
 {
   "id": "prompt_1234567890_0",
-  "text": "프롬프트 텍스트 내용",
+  "text": "Prompt text content",
   "timestamp": "2025-01-27T12:00:00.000Z",
   "pageUrl": "https://sora.chatgpt.com/library",
   "selector": "[data-testid=\"prompt-text\"]"
 }
 ```
 
-## ⚙️ 설정 옵션
+## ⚙️ Configuration Options
 
-### 자동 저장 간격
-- **최소**: 10초 (빠른 수집)
-- **기본**: 30초 (권장)
-- **최대**: 3600초 (1시간, 느린 수집)
+### Auto Save Interval
+- **Minimum**: 10 seconds (fast collection)
+- **Default**: 30 seconds (recommended)
+- **Maximum**: 3600 seconds (1 hour, slow collection)
 
-### 확장 프로그램별 특징
+### Extension Features
 
-#### chrome-extension-test (기본)
-- 간단한 설정
-- 직관적인 인터페이스
-- 빠른 시작
+#### chrome-extension-test (Basic)
+- Simple settings
+- Intuitive interface
+- Quick start
 
-#### auto-save-json-test (고급)
-- 상세한 설정 옵션
-- 고급 UI/UX
-- 향상된 로깅
-- 더 많은 커스터마이징
+#### auto-save-json-test (Advanced)
+- Detailed configuration options
+- Advanced UI/UX
+- Enhanced logging
+- More customization options
 
-## 🔧 고급 기능
+## 🔧 Advanced Features
 
-### 실시간 모니터링
-- **DOM 변경 감지**: MutationObserver 사용
-- **페이지 변경 감지**: URL 변경 시 자동 대응
-- **에러 처리**: 네트워크 오류 자동 복구
+### Real-time Monitoring
+- **DOM change detection**: Using MutationObserver
+- **Page change detection**: Automatic response to URL changes
+- **Error handling**: Automatic network error recovery
 
-### 스마트 데이터 수집
-- **중복 방지**: 동일한 데이터 자동 필터링
-- **메타데이터 수집**: 상세한 정보 포함
-- **구조화된 저장**: JSON 형식으로 정리
+### Smart Data Collection
+- **Duplicate prevention**: Automatic filtering of identical data
+- **Metadata collection**: Including detailed information
+- **Structured storage**: Organized in JSON format
 
-### 사용자 경험
-- **실시간 피드백**: 작업 상태 즉시 확인
-- **원클릭 다운로드**: 간편한 데이터 내보내기
-- **반응형 디자인**: 다양한 화면 크기 지원
+### User Experience
+- **Real-time feedback**: Immediate confirmation of operation status
+- **One-click download**: Easy data export
+- **Responsive design**: Support for various screen sizes
 
-## 🐛 문제 해결
+## 🐛 Troubleshooting
 
-### 자동 저장이 작동하지 않는 경우
-1. **페이지 URL 확인**: `https://sora.chatgpt.com/library`
-2. **권한 확인**: 확장 프로그램 권한 허용
-3. **페이지 새로고침**: F5 키로 재로드
-4. **확장 프로그램 재로드**: chrome://extensions/에서 재로드
+### Auto Save Not Working
+1. **Check page URL**: `https://sora.chatgpt.com/library`
+2. **Verify permissions**: Allow extension permissions
+3. **Refresh page**: Press F5 to reload
+4. **Reload extension**: Reload in chrome://extensions/
 
-### 데이터가 수집되지 않는 경우
-1. **콘솔 로그 확인**: F12 → Console 탭
-2. **네트워크 연결**: 인터넷 연결 상태 확인
-3. **페이지 로딩 대기**: 완전히 로드될 때까지 대기
+### Data Not Being Collected
+1. **Check console logs**: F12 → Console tab
+2. **Network connection**: Check internet connection status
+3. **Wait for page loading**: Wait until page is fully loaded
 
-### 카운트다운이 표시되지 않는 경우
-1. **자동 저장 ON 확인**: 토글 스위치가 ON 상태인지 확인
-2. **페이지 새로고침**: 페이지를 새로고침하여 콘텐츠 스크립트 재로드
-3. **확장 프로그램 재로드**: 확장 프로그램을 재로드
+### Countdown Not Displaying
+1. **Check auto save ON**: Verify toggle switch is ON
+2. **Refresh page**: Refresh page to reload content script
+3. **Reload extension**: Reload the extension
 
-## 📞 지원 및 기여
+## 📞 Support and Contributions
 
-### 버그 리포트
-문제가 발생하면 다음 정보를 포함하여 이슈를 생성해주세요:
-- **브라우저 버전**: Chrome 버전
-- **확장 프로그램 버전**: 설치된 확장 프로그램
-- **오류 메시지**: 콘솔 로그 내용
-- **재현 단계**: 문제 발생 과정
+### Bug Reports
+If you encounter issues, please create an issue with the following information:
+- **Browser version**: Chrome version
+- **Extension version**: Installed extension
+- **Error message**: Console log content
+- **Reproduction steps**: Problem occurrence process
 
-### 기능 제안
-새로운 기능이나 개선 사항이 있으면:
-- **사용 사례**: 어떤 상황에서 필요한지
-- **기대 동작**: 어떻게 작동하면 좋을지
-- **우선순위**: 얼마나 중요한지
+### Feature Suggestions
+For new features or improvements:
+- **Use case**: When it's needed
+- **Expected behavior**: How it should work
+- **Priority**: How important it is
 
-## 📄 라이선스
+## 📄 License
 
-이 프로젝트는 MIT 라이선스 하에 배포됩니다.
+This project is distributed under the MIT License.
 
-## 🔄 업데이트 내역
+## 🔄 Update History
 
 ### v2.4.0 (2025-01-27)
-- ✅ 폴더 구조 최종 정리
-- ✅ 확장 프로그램 관련 파일만 유지
-- ✅ Python 도구 제거로 깔끔한 구조
-- ✅ Chrome Web Store 등록 준비 완료
-- ✅ 메인 README 파일 정리
+- ✅ Final folder structure cleanup
+- ✅ Keep only extension-related files
+- ✅ Clean structure by removing Python tools
+- ✅ Chrome Web Store registration ready
+- ✅ Main README file cleanup
 
 ### v2.3.0 (2025-01-27)
-- ✅ 폴더 구조 정리
-- ✅ 두 개의 확장 프로그램 분리
-- ✅ 실행 파일 제거
-- ✅ .gitignore 파일 추가
+- ✅ Folder structure cleanup
+- ✅ Separation of two extensions
+- ✅ Remove executable files
+- ✅ Add .gitignore file
 
 ### v2.2.0 (2025-01-26)
-- ✅ 실시간 카운트다운 기능
-- ✅ 중복 방지 시스템
-- ✅ JSON 파일 검증
-- ✅ 에러 처리 개선
+- ✅ Real-time countdown feature
+- ✅ Duplicate prevention system
+- ✅ JSON file validation
+- ✅ Error handling improvements
 
 ### v2.1.0 (2025-01-25)
-- ✅ 자동 저장 기능
-- ✅ 이미지/프롬프트 수집
-- ✅ JSON 다운로드
-- ✅ 기본 UI 구현
+- ✅ Auto save functionality
+- ✅ Image/prompt collection
+- ✅ JSON download
+- ✅ Basic UI implementation
 
 ---
 
-**개발자**: yoohyunseog  
+**Developer**: yoohyunseog  
 **GitHub**: https://github.com/yoohyunseog/sora-chatgpt-downloader  
-**지원 브라우저**: Chrome 88+  
-**최종 업데이트**: 2025-01-27 
+**Supported Browsers**: Chrome 88+  
+**Last Updated**: 2025-01-27 

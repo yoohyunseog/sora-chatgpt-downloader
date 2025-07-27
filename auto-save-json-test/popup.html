@@ -1,222 +1,208 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Sora ChatGPT 자동 저장</title>
-  <style>
-    body { 
-      font-family: sans-serif; 
-      margin: 20px; 
-      width: 400px;
-    }
-    
-    .container {
-      display: flex;
-      gap: 15px;
-    }
-    
-    .left-panel {
-      flex: 1;
-    }
-    
-    .right-panel {
-      width: 120px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    button { 
-      padding: 8px 12px; 
-      font-size: 12px; 
-      margin: 0;
-      width: 100%;
-      cursor: pointer;
-      border: none;
-      border-radius: 5px;
-      white-space: nowrap;
-    }
-    .primary { background-color: #007bff; color: white; }
-    .success { background-color: #28a745; color: white; }
-    .danger { background-color: #dc3545; color: white; }
-    .info { background-color: #17a2b8; color: white; }
-    .secondary { background-color: #6c757d; color: white; }
-    
-    #status { 
-      margin-top: 15px; 
-      padding: 10px;
-      border-radius: 5px;
-      font-size: 12px;
-      white-space: pre-line;
-    }
-    .success { background-color: #d4edda; color: #155724; }
-    .error { background-color: #f8d7da; color: #721c24; }
-    .info { background-color: #d1ecf1; color: #0c5460; }
-    .warning { background-color: #fff3cd; color: #856404; }
-    
-    .toggle-container {
-      display: flex;
-      align-items: center;
-      margin: 10px 0;
-      padding: 10px;
-      background-color: #f8f9fa;
-      border-radius: 5px;
-    }
-    .toggle-switch {
-      position: relative;
-      width: 50px;
-      height: 24px;
-      margin-right: 10px;
-    }
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 24px;
-    }
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 16px;
-      width: 16px;
-      left: 4px;
-      bottom: 4px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-    input:checked + .slider {
-      background-color: #2196F3;
-    }
-    input:checked + .slider:before {
-      transform: translateX(26px);
-    }
-    
-    .countdown {
-      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-      color: white;
-      padding: 15px;
-      border-radius: 10px;
-      margin: 10px 0;
-      text-align: center;
-      font-weight: bold;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    .countdown.hidden {
-      display: none;
-    }
-    .countdown-number {
-      font-size: 24px;
-      margin: 5px 0;
-    }
-    .countdown-text {
-      font-size: 12px;
-      opacity: 0.9;
-    }
-    
-    .stats {
-      background-color: #e9ecef;
-      padding: 10px;
-      border-radius: 5px;
-      margin: 10px 0;
-      font-size: 12px;
-    }
-    
-    .settings {
-      background-color: #f8f9fa;
-      padding: 10px;
-      border-radius: 5px;
-      margin: 10px 0;
-    }
-    .settings label {
-      display: block;
-      margin: 5px 0;
-      font-size: 12px;
-    }
-    .settings input {
-      width: 100%;
-      padding: 5px;
-      margin: 2px 0;
-      border: 1px solid #ddd;
-      border-radius: 3px;
-    }
-    
-    h2 {
-      margin-top: 0;
-      margin-bottom: 15px;
-      text-align: center;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Sora ChatGPT Auto Save Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 320px;
+            min-height: 280px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            margin: 10px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .title {
+            color: #4a5568;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .pro-badge {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .language-section {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .language-label {
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .language-selector {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            background: white;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section-title {
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .info-section {
+            text-align: center;
+            padding: 15px;
+            background: #e6fffa;
+            border-radius: 8px;
+            border: 1px solid #81e6d9;
+        }
+
+        .info-text {
+            color: #234e52;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .pro-features {
+            margin-top: 15px;
+            padding: 10px;
+            background: #fff5f5;
+            border-radius: 6px;
+            border: 1px solid #fed7d7;
+        }
+
+        .pro-features h4 {
+            color: #742a2a;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .pro-features ul {
+            color: #742a2a;
+            font-size: 11px;
+            padding-left: 15px;
+        }
+
+        .pro-features li {
+            margin-bottom: 3px;
+        }
+
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .status.info {
+            background: #e6fffa;
+            color: #234e52;
+            border: 1px solid #81e6d9;
+        }
+
+        .status.success {
+            background: #f0fff4;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-  <h2>🎨 Sora ChatGPT 자동 저장</h2>
-  
-  <div class="container">
-    <!-- 왼쪽 패널 -->
-    <div class="left-panel">
-      <!-- 카운트다운 표시 -->
-      <div class="countdown hidden" id="countdown">
-        <div class="countdown-text">다음 저장까지</div>
-        <div class="countdown-number" id="countdownNumber">30</div>
-        <div class="countdown-text">초</div>
-      </div>
-      
-      <!-- 자동 저장 토글 -->
-      <div class="toggle-container">
-        <label class="toggle-switch">
-          <input type="checkbox" id="autoSaveToggle">
-          <span class="slider"></span>
-        </label>
-        <span id="toggleLabel">자동 저장 OFF</span>
-      </div>
-      
-      <!-- 자동 JSON 다운로드 토글 -->
-      <div class="toggle-container">
-        <label class="toggle-switch">
-          <input type="checkbox" id="autoDownloadToggle">
-          <span class="slider"></span>
-        </label>
-        <span id="autoDownloadLabel">자동 다운로드 OFF</span>
-      </div>
-      
-      <!-- 통계 정보 -->
-      <div class="stats" id="stats">
-        📊 저장 통계
-        저장된 이미지: 0개
-        저장된 프롬프트: 0개
-        마지막 저장: 없음
-      </div>
-      
-      <!-- 설정 -->
-      <div class="settings">
-        <label>저장 간격 (초):</label>
-        <input type="number" id="saveInterval" value="30" min="10" max="3600">
-        
-        <label>저장할 페이지 URL:</label>
-        <input type="text" id="targetUrl" value="https://sora.chatgpt.com/library" readonly>
-      </div>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="title">
+                <span data-i18n="appName">Sora ChatGPT Auto Save Pro</span>
+                <span class="pro-badge">PRO</span>
+            </div>
+            <div class="subtitle" data-i18n="appDescription">Advanced auto save with enhanced features</div>
+        </div>
+
+        <!-- Language Selection -->
+        <div class="language-section">
+            <div class="language-label" data-i18n="language">Language</div>
+            <select id="languageSelector" class="language-selector">
+                <option value="en" data-i18n="english">English</option>
+                <option value="ko" data-i18n="korean">한국어</option>
+            </select>
+        </div>
+
+        <!-- Info Section -->
+        <div class="info-section">
+            <div class="info-text">
+                <strong data-i18n="extensionReady">Extension Ready!</strong><br>
+                <span data-i18n="extensionReadyDesc">The extension is ready to use with all features enabled.</span>
+            </div>
+        </div>
+
+        <!-- Pro Features Info -->
+        <div class="pro-features">
+            <h4 data-i18n="proFeaturesAvailable">Pro Features Available:</h4>
+            <ul>
+                <li data-i18n="advancedAutoSave">Advanced auto save functionality</li>
+                <li data-i18n="smartFiltering">Smart filtering and deduplication</li>
+                <li data-i18n="detailedLogging">Detailed logging and monitoring</li>
+                <li data-i18n="settingsImportExport">Settings import/export</li>
+                <li data-i18n="enhancedUI">Enhanced UI with tabs</li>
+            </ul>
+        </div>
+
+        <!-- Status Message -->
+        <div class="status info hidden" id="statusMessage">
+            <span id="statusText" data-i18n="extensionReady">Extension ready</span>
+        </div>
     </div>
-    
-    <!-- 우측 패널 (버튼들) -->
-    <div class="right-panel">
-      <button id="manualSaveBtn" class="primary">📸 수동 저장</button>
-      <button id="downloadBtn" class="info">💾 JSON 다운로드</button>
-      <button id="clearDataBtn" class="danger">🗑️ 데이터 초기화</button>
-    </div>
-  </div>
-  
-  <div id="status"></div>
-  
-  <script src="popup.js"></script>
+
+    <script src="popup.js"></script>
 </body>
 </html> 

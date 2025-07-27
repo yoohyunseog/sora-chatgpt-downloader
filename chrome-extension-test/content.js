@@ -1,5 +1,252 @@
 // 프롬프트 테스트 확장 프로그램 - 콘텐츠 스크립트
-console.log('프롬프트 테스트 확장 프로그램 - 콘텐츠 스크립트 로드됨');
+console.log('Prompt test extension - Content script loaded');
+
+// Chrome i18n 지원 함수들
+function getCurrentLanguage() {
+    return chrome.i18n.getUILanguage().split('-')[0] || 'en';
+}
+
+function getLocalizedMessage(messageKey, substitutions = []) {
+    return chrome.i18n.getMessage(messageKey, substitutions) || messageKey;
+}
+
+// 언어 설정
+let currentLanguage = 'en';
+
+// 페이지 로드 시 언어 설정 로드
+chrome.storage.local.get(['language'], function(result) {
+    if (result.language) {
+        currentLanguage = result.language;
+        console.log('언어 설정 로드됨:', currentLanguage);
+    }
+});
+
+// Chrome 저장소 변경 감지 (실시간 언어 변경)
+chrome.storage.onChanged.addListener(function(changes, namespace) {
+    if (namespace === 'local' && changes.language) {
+        const newLanguage = changes.language.newValue;
+        if (newLanguage && newLanguage !== currentLanguage) {
+            console.log('언어 설정 변경 감지:', newLanguage);
+            currentLanguage = newLanguage;
+            updateUITexts();
+            
+            // 언어 변경 알림 메시지
+            const changeMessage = currentLanguage === 'ko' ? '🌐 언어가 한국어로 변경되었습니다' : '🌐 Language changed to English';
+            addLogMessage(changeMessage);
+            
+            // 시각적 피드백 (로그 오버레이 깜빡임)
+            const logOverlay = document.getElementById('log-overlay');
+            if (logOverlay) {
+                logOverlay.style.transition = 'all 0.3s ease';
+                logOverlay.style.transform = 'scale(1.02)';
+                logOverlay.style.boxShadow = '0 8px 32px rgba(0, 255, 0, 0.5)';
+                
+                // 자동 모드 버튼도 함께 깜빡임
+                const autoModeButton = document.getElementById('auto-mode-button');
+                if (autoModeButton) {
+                    autoModeButton.style.transition = 'all 0.3s ease';
+                    autoModeButton.style.transform = 'scale(1.05)';
+                    autoModeButton.style.boxShadow = '0 4px 16px rgba(0, 255, 0, 0.4)';
+                    
+                    setTimeout(() => {
+                        autoModeButton.style.transform = 'scale(1)';
+                        autoModeButton.style.boxShadow = 'none';
+                    }, 300);
+                }
+                
+                setTimeout(() => {
+                    logOverlay.style.transform = 'scale(1)';
+                    logOverlay.style.boxShadow = '0 4px 20px rgba(0, 255, 0, 0.3)';
+                }, 300);
+            }
+        }
+    }
+});
+
+// 팝업으로부터의 메시지 수신
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (request.action === 'languageChanged') {
+        console.log('팝업으로부터 언어 변경 메시지 수신:', request.language);
+        currentLanguage = request.language;
+        updateUITexts();
+        
+        // 언어 변경 알림 메시지
+        const changeMessage = currentLanguage === 'ko' ? '🌐 언어가 한국어로 변경되었습니다' : '🌐 Language changed to English';
+        addLogMessage(changeMessage);
+        
+        // 시각적 피드백 (로그 오버레이 깜빡임)
+        const logOverlay = document.getElementById('log-overlay');
+        if (logOverlay) {
+            logOverlay.style.transition = 'all 0.3s ease';
+            logOverlay.style.transform = 'scale(1.02)';
+            logOverlay.style.boxShadow = '0 8px 32px rgba(0, 255, 0, 0.5)';
+            
+            // 자동 모드 버튼도 함께 깜빡임
+            const autoModeButton = document.getElementById('auto-mode-button');
+            if (autoModeButton) {
+                autoModeButton.style.transition = 'all 0.3s ease';
+                autoModeButton.style.transform = 'scale(1.05)';
+                autoModeButton.style.boxShadow = '0 4px 16px rgba(0, 255, 0, 0.4)';
+                
+                setTimeout(() => {
+                    autoModeButton.style.transform = 'scale(1)';
+                    autoModeButton.style.boxShadow = 'none';
+                }, 300);
+            }
+            
+            setTimeout(() => {
+                logOverlay.style.transform = 'scale(1)';
+                logOverlay.style.boxShadow = '0 4px 20px rgba(0, 255, 0, 0.3)';
+            }, 300);
+        }
+    }
+});
+
+// UI 텍스트 업데이트 함수
+function updateUITexts() {
+  console.log('UI 텍스트 업데이트:', currentLanguage);
+  
+  // 오버레이의 텍스트들을 업데이트
+  const overlay = document.getElementById('prompt-test-overlay');
+  if (overlay) {
+    updateOverlayTexts(overlay);
+  }
+  
+  // 로그 오버레이의 텍스트들을 업데이트
+  const logOverlay = document.getElementById('log-overlay');
+  if (logOverlay) {
+    updateLogOverlayTexts(logOverlay);
+  }
+  
+  // 자동 모드 버튼 업데이트
+  updateAutoModeButton();
+  
+  // 진행 단계 텍스트 업데이트
+  updateProgressSteps();
+}
+
+// 오버레이 텍스트 업데이트
+function updateOverlayTexts(overlay) {
+    const texts = {
+        ko: {
+            title: '🎨 Sora Auto Save',
+            autoMonitoring: '자동 모니터링',
+            monitoringInterval: '모니터링 간격',
+            startMonitoring: '모니터링 시작',
+            stopMonitoring: '모니터링 중지',
+            saveSettings: '설정 저장',
+            resetSettings: '설정 초기화'
+        },
+        en: {
+            title: '🎨 Sora Auto Save',
+            autoMonitoring: 'Auto Monitoring',
+            monitoringInterval: 'Monitoring Interval',
+            startMonitoring: 'Start Monitoring',
+            stopMonitoring: 'Stop Monitoring',
+            saveSettings: 'Save Settings',
+            resetSettings: 'Reset Settings'
+        }
+    };
+    
+    const currentTexts = texts[currentLanguage] || texts.en;
+    
+    // 제목 업데이트
+    const titleElement = overlay.querySelector('.overlay-title');
+    if (titleElement) {
+        titleElement.textContent = currentTexts.title;
+    }
+    
+    // 라벨들 업데이트
+    const labels = overlay.querySelectorAll('.overlay-label');
+    labels.forEach(label => {
+        const key = label.getAttribute('data-text-key');
+        if (key && currentTexts[key]) {
+            label.textContent = currentTexts[key];
+        }
+    });
+}
+
+// 로그 오버레이 텍스트 업데이트
+function updateLogOverlayTexts(logOverlay) {
+    const texts = {
+        ko: {
+            title: '📊 모니터링 로그',
+            close: '닫기',
+            clear: '지우기'
+        },
+        en: {
+            title: '📊 Monitoring Log',
+            close: 'Close',
+            clear: 'Clear'
+        }
+    };
+    
+    const currentTexts = texts[currentLanguage] || texts.en;
+    
+    // 제목 업데이트
+    const titleElement = logOverlay.querySelector('.log-title');
+    if (titleElement) {
+        titleElement.textContent = currentTexts.title;
+    }
+    
+    // 버튼들 업데이트
+    const closeBtn = logOverlay.querySelector('.log-close-btn');
+    if (closeBtn) {
+        closeBtn.textContent = currentTexts.close;
+    }
+    
+    const clearBtn = logOverlay.querySelector('.log-clear-btn');
+    if (clearBtn) {
+        clearBtn.textContent = currentTexts.clear;
+    }
+}
+
+// 자동 모드 버튼 업데이트
+function updateAutoModeButton() {
+  const autoModeButton = document.getElementById('auto-mode-button');
+  if (autoModeButton) {
+    if (isGlobalIntervalRunning) {
+      autoModeButton.textContent = currentLanguage === 'ko' ? '🔄 자동 모드 ON' : '🔄 Auto Mode ON';
+      autoModeButton.style.background = '#28a745';
+    } else {
+      autoModeButton.textContent = currentLanguage === 'ko' ? '🔄 자동 모드 OFF' : '🔄 Auto Mode OFF';
+      autoModeButton.style.background = '#dc3545';
+    }
+  }
+}
+
+// 진행 단계 텍스트 업데이트
+function updateProgressSteps() {
+  const stepTexts = {
+    ko: {
+      step0: '초기화',
+      step1: '카운터',
+      step2: '모니터링',
+      step3: '프롬프트',
+      step4: '이미지생성',
+      step5: '저장',
+      step6: '완료'
+    },
+    en: {
+      step0: 'Init',
+      step1: 'Counter',
+      step2: 'Monitor',
+      step3: 'Prompt',
+      step4: 'ImageGen',
+      step5: 'Save',
+      step6: 'Complete'
+    }
+  };
+  
+  const currentTexts = stepTexts[currentLanguage] || stepTexts.en;
+  
+  for (let i = 0; i < 7; i++) {
+    const stepButton = document.getElementById(`step-${i}`);
+    if (stepButton) {
+      stepButton.textContent = `${i + 1}. ${currentTexts[`step${i}`]}`;
+    }
+  }
+}
 
 // 확장 프로그램 컨텍스트 검증 함수
 function isExtensionContextValid() {
@@ -788,11 +1035,11 @@ function startMainLoop() {
   globalIntervalId = setInterval(mainLoop, MAIN_LOOP_INTERVAL);
   isGlobalIntervalRunning = true;
   console.log('▶️ main setInterval 시작 (1초 주기)');
-  addLogMessage('▶️ main setInterval 시작 (1초 주기)');
+  addLogMessage(currentLanguage === 'ko' ? '▶️ main setInterval 시작 (1초 주기)' : '▶️ Main setInterval started (1 second cycle)');
 }
 
 function stopMainLoop() {
-  addLogMessage('⏹️ mainLoop 중지 시작...');
+  addLogMessage(currentLanguage === 'ko' ? '⏹️ mainLoop 중지 시작...' : '⏹️ MainLoop stop started...');
   
   // main setInterval 정리
   if (globalIntervalId) {
@@ -800,19 +1047,21 @@ function stopMainLoop() {
     globalIntervalId = null;
     isGlobalIntervalRunning = false;
     console.log('⏹️ main setInterval 중지');
-    addLogMessage('⏹️ main setInterval 중지');
+    addLogMessage(currentLanguage === 'ko' ? '⏹️ main setInterval 중지' : '⏹️ Main setInterval stopped');
   }
   
   // 모든 활성 setTimeout 정리
   if (activeTimeouts.length > 0) {
-    addLogMessage(`🧹 ${activeTimeouts.length}개의 활성 setTimeout 정리 중...`);
+    addLogMessage(currentLanguage === 'ko' 
+      ? `🧹 ${activeTimeouts.length}개의 활성 setTimeout 정리 중...`
+      : `🧹 Cleaning up ${activeTimeouts.length} active setTimeout...`);
     activeTimeouts.forEach(timeoutId => {
       clearTimeout(timeoutId);
     });
     activeTimeouts = [];
-    addLogMessage('✅ 모든 setTimeout 정리 완료');
+    addLogMessage(currentLanguage === 'ko' ? '✅ 모든 setTimeout 정리 완료' : '✅ All setTimeout cleanup completed');
   } else {
-    addLogMessage('ℹ️ 정리할 활성 setTimeout이 없음');
+    addLogMessage(currentLanguage === 'ko' ? 'ℹ️ 정리할 활성 setTimeout이 없음' : 'ℹ️ No active setTimeout to clean up');
   }
   
   // 상태 초기화
@@ -820,7 +1069,7 @@ function stopMainLoop() {
   mainLoopTick = 0;
   isPaused = false;
   
-  addLogMessage('✅ mainLoop 완전 중지 및 모든 타이머 정리 완료');
+  addLogMessage(currentLanguage === 'ko' ? '✅ mainLoop 완전 중지 및 모든 타이머 정리 완료' : '✅ MainLoop completely stopped and all timers cleaned up');
 }
 
 function mainLoop() {
@@ -832,20 +1081,20 @@ function mainLoop() {
       updateProgressStep(0);
       step1_ManageOverlay();
       mainLoopState = 1;
-      addLogMessage('🔄 mainLoop 상태 변경: 0 → 1');
+      addLogMessage(currentLanguage === 'ko' ? '🔄 mainLoop 상태 변경: 0 → 1' : '🔄 MainLoop state change: 0 → 1');
       break;
 
     case 1: // 카운터 업데이트 상태 (딜레이 적용)
       updateProgressStep(1);
       isPaused = true;
-      addLogMessage('📊 Step 2 시작...');
+      addLogMessage(currentLanguage === 'ko' ? '📊 Step 2 시작...' : '📊 Step 2 started...');
       trackedSetTimeout(() => {
         mainLoopTick++;
-        addLogMessage('✅ 카운터 업데이트 완료');
+        addLogMessage(currentLanguage === 'ko' ? '✅ 카운터 업데이트 완료' : '✅ Counter update completed');
         trackedSetTimeout(() => {
           updateProgressStep(1, 'success');
           mainLoopState = 2;
-          addLogMessage('🔄 상태 변경: 1→2');
+          addLogMessage(currentLanguage === 'ko' ? '🔄 상태 변경: 1→2' : '🔄 State change: 1→2');
           isPaused = false;
         }, MAIN_LOOP_INTERVAL);
       }, MAIN_LOOP_INTERVAL);
@@ -854,16 +1103,20 @@ function mainLoop() {
     case 2: // 프롬프트 모니터링 상태 (딜레이 적용)
       updateProgressStep(2);
       isPaused = true;
-      addLogMessage('🔍 Step 3: 프롬프트 모니터링 시작...');
+      addLogMessage(currentLanguage === 'ko' ? '🔍 Step 3: 프롬프트 모니터링 시작...' : '🔍 Step 3: Prompt monitoring started...');
       trackedSetTimeout(() => {
-        addLogMessage('📋 promptMonitoringStep() 호출 전 promptData 상태: ' + (promptData ? '존재함' : 'null'));
+        addLogMessage(currentLanguage === 'ko' 
+          ? '📋 promptMonitoringStep() 호출 전 promptData 상태: ' + (promptData ? '존재함' : 'null')
+          : '📋 promptData status before promptMonitoringStep(): ' + (promptData ? 'exists' : 'null'));
         promptMonitoringStep();
-        addLogMessage('📋 promptMonitoringStep() 호출 후 promptData 상태: ' + (promptData ? '존재함' : 'null'));
-        addLogMessage('✅ Step 3: 프롬프트 모니터링 완료');
+        addLogMessage(currentLanguage === 'ko'
+          ? '📋 promptMonitoringStep() 호출 후 promptData 상태: ' + (promptData ? '존재함' : 'null')
+          : '📋 promptData status after promptMonitoringStep(): ' + (promptData ? 'exists' : 'null'));
+        addLogMessage(currentLanguage === 'ko' ? '✅ Step 3: 프롬프트 모니터링 완료' : '✅ Step 3: Prompt monitoring completed');
         trackedSetTimeout(() => {
           updateProgressStep(2, 'success');
           mainLoopState = 3;
-          addLogMessage('🔄 상태 변경: 2→3');
+          addLogMessage(currentLanguage === 'ko' ? '🔄 상태 변경: 2→3' : '🔄 State change: 2→3');
           isPaused = false;
         }, MAIN_LOOP_INTERVAL);
       }, MAIN_LOOP_INTERVAL);
@@ -872,20 +1125,24 @@ function mainLoop() {
     case 3: // 프롬프트 출력 상태 (딜레이 적용)
       updateProgressStep(3);
       isPaused = true;
-      addLogMessage('📝 Step 4: 페이지 프롬프트 가져오기 시작...');
+      addLogMessage(currentLanguage === 'ko' ? '📝 Step 4: 페이지 프롬프트 가져오기 시작...' : '📝 Step 4: Getting page prompt started...');
       trackedSetTimeout(() => {
         // 1. 현재 페이지 프롬프트 가져오기
         const currentPrompt = getCurrentSoraPrompt();
         if (currentPrompt) {
           const shortContent = currentPrompt.length > 50 ? currentPrompt.substring(0, 50) + '...' : currentPrompt;
-          addLogMessage(`📋 현재 페이지 프롬프트: "${shortContent}"`);
-          addLogMessage(`📊 프롬프트 길이: ${currentPrompt.length}자`);
+          addLogMessage(currentLanguage === 'ko' 
+            ? `📋 현재 페이지 프롬프트: "${shortContent}"`
+            : `📋 Current page prompt: "${shortContent}"`);
+          addLogMessage(currentLanguage === 'ko'
+            ? `📊 프롬프트 길이: ${currentPrompt.length}자`
+            : `📊 Prompt length: ${currentPrompt.length} characters`);
         } else {
-          addLogMessage('❌ 페이지에서 프롬프트를 찾을 수 없음');
+          addLogMessage(currentLanguage === 'ko' ? '❌ 페이지에서 프롬프트를 찾을 수 없음' : '❌ Cannot find prompt on page');
         }
         
         // 2. data.json 프롬프트들 가져오기 및 중복 검사
-        addLogMessage('📝 data.json 프롬프트들 가져오기 시작...');
+        addLogMessage(currentLanguage === 'ko' ? '📝 data.json 프롬프트들 가져오기 시작...' : '📝 Getting data.json prompts started...');
         const dataUrl = getRuntimeURL('data.json');
         if (dataUrl) {
           fetch(dataUrl)
@@ -895,54 +1152,72 @@ function mainLoop() {
                 // data.json 데이터를 전역 변수에 저장
                 window.lastPromptData = data;
                 
-                addLogMessage(`📊 data.json에서 ${data.prompts.length}개의 프롬프트 로드됨`);
+                addLogMessage(currentLanguage === 'ko'
+                  ? `📊 data.json에서 ${data.prompts.length}개의 프롬프트 로드됨`
+                  : `📊 Loaded ${data.prompts.length} prompts from data.json`);
                 data.prompts.forEach((prompt, index) => {
                   const shortContent = prompt.content.length > 50 ? prompt.content.substring(0, 50) + '...' : prompt.content;
-                  addLogMessage(`📋 data.json 프롬프트 ${index + 1}: "${shortContent}"`);
+                  addLogMessage(currentLanguage === 'ko'
+                    ? `📋 data.json 프롬프트 ${index + 1}: "${shortContent}"`
+                    : `📋 data.json prompt ${index + 1}: "${shortContent}"`);
                 });
                 
                 // 3. 중복 검사 실행
                 if (currentPrompt && data.prompts && Array.isArray(data.prompts)) {
-                  addLogMessage('🔍 중복 검사 시작...');
-                  addLogMessage(`📋 전달할 프롬프트 데이터: ${data.prompts.length}개`);
+                  addLogMessage(currentLanguage === 'ko' ? '🔍 중복 검사 시작...' : '🔍 Duplicate check started...');
+                  addLogMessage(currentLanguage === 'ko'
+                    ? `📋 전달할 프롬프트 데이터: ${data.prompts.length}개`
+                    : `📋 Prompt data to pass: ${data.prompts.length} items`);
                   checkPromptDuplication(currentPrompt, data.prompts)
                     .then(result => {
                       // 중복 검사 결과를 전역 변수에 저장
                       window.lastDuplicationResult = result;
                       
                       if (result.isDuplicate && result.matches && Array.isArray(result.matches)) {
-                        addLogMessage(`⚠️ 중복 프롬프트 발견: ${result.matches.length}개 매치`);
-                        addLogMessage(`📈 최고 유사도: ${result.similarity.toFixed(1)}%`);
+                        addLogMessage(currentLanguage === 'ko'
+                          ? `⚠️ 중복 프롬프트 발견: ${result.matches.length}개 매치`
+                          : `⚠️ Duplicate prompt found: ${result.matches.length} matches`);
+                        addLogMessage(currentLanguage === 'ko'
+                          ? `📈 최고 유사도: ${result.similarity.toFixed(1)}%`
+                          : `📈 Highest similarity: ${result.similarity.toFixed(1)}%`);
                         result.matches.forEach((match, index) => {
                           try {
                             const matchText = match.text || (match.prompt && match.prompt.content) || match.prompt || '';
                             const shortMatch = matchText.length > 50 ? matchText.substring(0, 50) + '...' : matchText;
-                            addLogMessage(`   매치 ${index + 1}: "${shortMatch}" (${match.similarity.toFixed(1)}%)`);
+                            addLogMessage(currentLanguage === 'ko'
+                              ? `   매치 ${index + 1}: "${shortMatch}" (${match.similarity.toFixed(1)}%)`
+                              : `   Match ${index + 1}: "${shortMatch}" (${match.similarity.toFixed(1)}%)`);
                           } catch (error) {
-                            addLogMessage(`   매치 ${index + 1}: [텍스트 추출 실패] (${match.similarity.toFixed(1)}%)`);
+                            addLogMessage(currentLanguage === 'ko'
+                              ? `   매치 ${index + 1}: [텍스트 추출 실패] (${match.similarity.toFixed(1)}%)`
+                              : `   Match ${index + 1}: [Text extraction failed] (${match.similarity.toFixed(1)}%)`);
                           }
                         });
                       } else {
-                        addLogMessage('✅ 중복 없음 - 새로운 프롬프트');
+                        addLogMessage(currentLanguage === 'ko' ? '✅ 중복 없음 - 새로운 프롬프트' : '✅ No duplicates - new prompt');
                       }
                     })
                     .catch(error => {
-                      addLogMessage('❌ 중복 검사 실패: ' + error.message);
+                      addLogMessage(currentLanguage === 'ko' ? '❌ 중복 검사 실패: ' + error.message : '❌ Duplicate check failed: ' + error.message);
                     });
                 } else {
-                  addLogMessage('❌ 중복 검사 건너뜀: currentPrompt 또는 data.prompts가 유효하지 않음');
-                  addLogMessage(`   currentPrompt: ${currentPrompt ? '존재함' : '없음'}`);
-                  addLogMessage(`   data.prompts: ${data.prompts ? (Array.isArray(data.prompts) ? `${data.prompts.length}개` : '배열아님') : '없음'}`);
+                  addLogMessage(currentLanguage === 'ko' ? '❌ 중복 검사 건너뜀: currentPrompt 또는 data.prompts가 유효하지 않음' : '❌ Skipping duplicate check: currentPrompt or data.prompts is invalid');
+                  addLogMessage(currentLanguage === 'ko'
+                    ? `   currentPrompt: ${currentPrompt ? '존재함' : '없음'}`
+                    : `   currentPrompt: ${currentPrompt ? 'exists' : 'none'}`);
+                  addLogMessage(currentLanguage === 'ko'
+                    ? `   data.prompts: ${data.prompts ? (Array.isArray(data.prompts) ? `${data.prompts.length}개` : '배열아님') : '없음'}`
+                    : `   data.prompts: ${data.prompts ? (Array.isArray(data.prompts) ? `${data.prompts.length} items` : 'not array') : 'none'}`);
                 }
               } else {
-                addLogMessage('❌ data.json에 프롬프트가 없음');
+                addLogMessage(currentLanguage === 'ko' ? '❌ data.json에 프롬프트가 없음' : '❌ No prompts in data.json');
               }
             })
             .catch(error => {
-              addLogMessage('❌ data.json 로드 실패: ' + error.message);
+              addLogMessage(currentLanguage === 'ko' ? '❌ data.json 로드 실패: ' + error.message : '❌ data.json load failed: ' + error.message);
             });
         } else {
-          addLogMessage('❌ data.json URL을 가져올 수 없음');
+          addLogMessage(currentLanguage === 'ko' ? '❌ data.json URL을 가져올 수 없음' : '❌ Cannot get data.json URL');
         }
         
         trackedSetTimeout(() => {
@@ -1954,10 +2229,10 @@ function createLogOverlay() {
   autoModeButton.id = 'auto-mode-button';
   // 실제 상태에 따라 텍스트/색상 설정
   if (isGlobalIntervalRunning) {
-    autoModeButton.textContent = '🔄 자동 모드 ON';
+    autoModeButton.textContent = currentLanguage === 'ko' ? '🔄 자동 모드 ON' : '🔄 Auto Mode ON';
     autoModeButton.style.background = '#28a745';
   } else {
-    autoModeButton.textContent = '🔄 자동 모드 OFF';
+    autoModeButton.textContent = currentLanguage === 'ko' ? '🔄 자동 모드 OFF' : '🔄 Auto Mode OFF';
     autoModeButton.style.background = '#dc3545';
   }
   autoModeButton.style.cssText += `
@@ -1975,14 +2250,18 @@ function createLogOverlay() {
   autoModeButton.addEventListener('click', () => {
     if (isGlobalIntervalRunning) {
       stopMainLoop();
-      autoModeButton.textContent = '🔄 자동 모드 OFF';
-      autoModeButton.style.background = '#dc3545';
-      addLogMessage('⏹️ 자동 모드 중지됨');
+      // 언어 설정에 따라 즉시 업데이트
+      setTimeout(() => {
+        updateAutoModeButton();
+      }, 100);
+      addLogMessage(currentLanguage === 'ko' ? '⏹️ 자동 모드 중지됨' : '⏹️ Auto mode stopped');
     } else {
       startMainLoop();
-      autoModeButton.textContent = '🔄 자동 모드 ON';
-      autoModeButton.style.background = '#28a745';
-      addLogMessage('▶️ 자동 모드 시작됨');
+      // 언어 설정에 따라 즉시 업데이트
+      setTimeout(() => {
+        updateAutoModeButton();
+      }, 100);
+      addLogMessage(currentLanguage === 'ko' ? '▶️ 자동 모드 시작됨' : '▶️ Auto mode started');
     }
   });
 
@@ -2008,7 +2287,8 @@ function createLogOverlay() {
   `;
   
   const progressTitle = document.createElement('div');
-  progressTitle.textContent = '📊 진행 단계';
+  progressTitle.className = 'log-title';
+  progressTitle.textContent = currentLanguage === 'ko' ? '📊 진행 단계' : '📊 Progress Steps';
   progressTitle.style.cssText = `
     font-weight: bold;
     margin-bottom: 5px;
@@ -2023,8 +2303,10 @@ function createLogOverlay() {
     gap: 5px;
   `;
   
-  // 7개 단계 버튼 생성
-  const stepNames = ['초기화', '카운터', '모니터링', '프롬프트', '이미지생성', '저장', '완료'];
+  // 7개 단계 버튼 생성 (언어별 텍스트)
+  const stepNames = currentLanguage === 'ko' 
+    ? ['초기화', '카운터', '모니터링', '프롬프트', '이미지생성', '저장', '완료']
+    : ['Init', 'Counter', 'Monitor', 'Prompt', 'ImageGen', 'Save', 'Complete'];
   for (let i = 0; i < 7; i++) {
     const stepContainer = document.createElement('div');
     stepContainer.style.cssText = `
@@ -2078,11 +2360,14 @@ function createLogOverlay() {
 
   // 초기 메시지는 한 번만 추가 (static 변수로 관리)
   if (!window.logOverlayInitialized) {
-    addLogMessage('🚀 로그 오버레이 생성됨');
-    addLogMessage('📊 main setInterval 모니터링 준비 완료');
-    addLogMessage('🔄 자동 모드 버튼을 클릭하여 시작하세요');
+    addLogMessage(currentLanguage === 'ko' ? '🚀 로그 오버레이 생성됨' : '🚀 Log overlay created');
+    addLogMessage(currentLanguage === 'ko' ? '📊 main setInterval 모니터링 준비 완료' : '📊 Main setInterval monitoring ready');
+    addLogMessage(currentLanguage === 'ko' ? '🔄 자동 모드 버튼을 클릭하여 시작하세요' : '🔄 Click auto mode button to start');
     window.logOverlayInitialized = true;
   }
+  
+  // 언어 설정 적용
+  updateUITexts();
 }
 
 // 로그 오버레이 제거 함수
@@ -2159,6 +2444,9 @@ function addLogMessage(message) {
     return;
   }
 
+  // 메시지 번역 처리
+  const translatedMessage = translateLogMessage(message);
+  
   const logEntry = document.createElement('div');
   logEntry.style.cssText = `
     margin-bottom: 5px;
@@ -2167,7 +2455,7 @@ function addLogMessage(message) {
   `;
   
   const timestamp = new Date().toLocaleTimeString();
-  logEntry.textContent = `[${timestamp}] ${message}`;
+  logEntry.textContent = `[${timestamp}] ${translatedMessage}`;
   
   logContainer.appendChild(logEntry);
   
@@ -2193,6 +2481,209 @@ function addLogMessage(message) {
 
   // 콘솔에도 출력
   console.log('📝 로그:', message);
+}
+
+// 로그 메시지 번역 함수
+function translateLogMessage(message) {
+  const messageMap = {
+    ko: {
+      // 기본 시스템 메시지
+      '🚀 로그 오버레이 생성됨': '🚀 로그 오버레이 생성됨',
+      '📊 main setInterval 모니터링 준비 완료': '📊 main setInterval 모니터링 준비 완료',
+      '🔄 자동 모드 버튼을 클릭하여 시작하세요': '🔄 자동 모드 버튼을 클릭하여 시작하세요',
+      '⏹️ 자동 모드 중지됨': '⏹️ 자동 모드 중지됨',
+      '▶️ 자동 모드 시작됨': '▶️ 자동 모드 시작됨',
+      '🧹 메시지 250개 도달 - 로그 및 상태 초기화': '🧹 메시지 250개 도달 - 로그 및 상태 초기화',
+      '✅ 로그/상태 초기화 완료': '✅ 로그/상태 초기화 완료',
+      
+      // 확장 프로그램 컨텍스트 관련
+      '🔍 확장 프로그램 컨텍스트 검증:': '🔍 확장 프로그램 컨텍스트 검증:',
+      '❌ 확장 프로그램 컨텍스트 검증 실패:': '❌ 확장 프로그램 컨텍스트 검증 실패:',
+      '⚠️ 확장 프로그램 컨텍스트가 무효화되어 메시지 전송을 건너뜁니다.': '⚠️ 확장 프로그램 컨텍스트가 무효화되어 메시지 전송을 건너뜁니다.',
+      '❌ 메시지 전송 실패:': '❌ 메시지 전송 실패:',
+      '메시지 전송 시간 초과': '메시지 전송 시간 초과',
+      '🔍 getRuntimeURL 호출:': '🔍 getRuntimeURL 호출:',
+      '⚠️ 확장 프로그램 컨텍스트가 무효화되어 URL을 가져올 수 없습니다.': '⚠️ 확장 프로그램 컨텍스트가 무효화되어 URL을 가져올 수 없습니다.',
+      '🔗 생성된 URL:': '🔗 생성된 URL:',
+      '❌ runtime URL 가져오기 실패:': '❌ runtime URL 가져오기 실패:',
+      
+      // 프롬프트 모니터링 관련
+      '🔍 Sora 페이지에서 현재 프롬프트 검색 중...': '🔍 Sora 페이지에서 현재 프롬프트 검색 중...',
+      '📊 자동 모니터링 설정 복원:': '📊 자동 모니터링 설정 복원:',
+      '⚙️ 실행주기를 1초로 강제 설정': '⚙️ 실행주기를 1초로 강제 설정',
+      '⚠️ 확장 프로그램 컨텍스트가 무효화되어 기본값(true)으로 설정': '⚠️ 확장 프로그램 컨텍스트가 무효화되어 기본값(true)으로 설정',
+      '🔄 카운터 초기화됨': '🔄 카운터 초기화됨',
+      '✅ 콘텐츠 스크립트 로드 완료': '✅ 콘텐츠 스크립트 로드 완료',
+      '⚙️ 실행주기를 1초로 설정': '⚙️ 실행주기를 1초로 설정',
+      '🔧 테스트용 로그 오버레이 자동 생성': '🔧 테스트용 로그 오버레이 자동 생성',
+      '🔧 테스트용으로 자동 생성된 로그 오버레이입니다.': '🔧 테스트용으로 자동 생성된 로그 오버레이입니다.',
+      '📊 자동 모니터링 상태를 확인하세요.': '📊 자동 모니터링 상태를 확인하세요.',
+      '⚙️ 실행주기: 1초': '⚙️ 실행주기: 1초',
+      
+      // 메인 루프 관련
+      '🔄 메인 루프 시작': '🔄 메인 루프 시작',
+      '⏹️ 메인 루프 중지': '⏹️ 메인 루프 중지',
+      '📊 메인 루프 실행 중': '📊 메인 루프 실행 중',
+      '✅ 메인 루프 완료': '✅ 메인 루프 완료',
+      '❌ 메인 루프 오류': '❌ 메인 루프 오류',
+      
+      // 진행 단계 관련
+      '📋 1단계: 오버레이 관리': '📋 1단계: 오버레이 관리',
+      '📊 2단계: 카운터 업데이트': '📊 2단계: 카운터 업데이트',
+      '🔍 3단계: 프롬프트 모니터링': '🔍 3단계: 프롬프트 모니터링',
+      '💾 4단계: 자동 저장': '💾 4단계: 자동 저장',
+      '✅ 5단계: 완료': '✅ 5단계: 완료',
+      '🎨 6단계: 이미지 생성': '🎨 6단계: 이미지 생성',
+      '📈 7단계: 진행률 업데이트': '📈 7단계: 진행률 업데이트',
+      
+      // 프롬프트 관련
+      '🔍 프롬프트 검색 중': '🔍 프롬프트 검색 중',
+      '✅ 프롬프트 발견': '✅ 프롬프트 발견',
+      '❌ 프롬프트 없음': '❌ 프롬프트 없음',
+      '🔄 프롬프트 변경 감지': '🔄 프롬프트 변경 감지',
+      '📝 새 프롬프트 저장': '📝 새 프롬프트 저장',
+      '⚠️ 중복 프롬프트 발견': '⚠️ 중복 프롬프트 발견',
+      
+      // 이미지 생성 관련
+      '🎨 이미지 생성 시작': '🎨 이미지 생성 시작',
+      '⏳ 이미지 생성 중': '⏳ 이미지 생성 중',
+      '✅ 이미지 생성 완료': '✅ 이미지 생성 완료',
+      '❌ 이미지 생성 실패': '❌ 이미지 생성 실패',
+      '🔄 이미지 생성 대기': '🔄 이미지 생성 대기',
+      
+      // 저장 관련
+      '💾 데이터 저장 중': '💾 데이터 저장 중',
+      '✅ 데이터 저장 완료': '✅ 데이터 저장 완료',
+      '❌ 데이터 저장 실패': '❌ 데이터 저장 실패',
+      '📁 JSON 파일 생성': '📁 JSON 파일 생성',
+      '📥 파일 다운로드 준비': '📥 파일 다운로드 준비',
+      
+      // 상태 관련
+      '🟢 모니터링 활성화': '🟢 모니터링 활성화',
+      '🔴 모니터링 비활성화': '🔴 모니터링 비활성화',
+      '⚙️ 설정 저장': '⚙️ 설정 저장',
+      '🔄 설정 로드': '🔄 설정 로드',
+      '🧹 상태 초기화': '🧹 상태 초기화',
+      
+      // 오류 및 경고
+      '⚠️ 경고': '⚠️ 경고',
+      '❌ 오류 발생': '❌ 오류 발생',
+      '🔄 재시도 중': '🔄 재시도 중',
+      '⏸️ 일시 중지': '⏸️ 일시 중지',
+      '▶️ 재개': '▶️ 재개',
+      
+      // 언어 변경
+      '🌐 언어가 한국어로 변경되었습니다': '🌐 언어가 한국어로 변경되었습니다',
+      '🌐 언어가 영어로 변경되었습니다': '🌐 언어가 영어로 변경되었습니다'
+    },
+    en: {
+      // 기본 시스템 메시지
+      '🚀 로그 오버레이 생성됨': '🚀 Log overlay created',
+      '📊 main setInterval 모니터링 준비 완료': '📊 Main setInterval monitoring ready',
+      '🔄 자동 모드 버튼을 클릭하여 시작하세요': '🔄 Click auto mode button to start',
+      '⏹️ 자동 모드 중지됨': '⏹️ Auto mode stopped',
+      '▶️ 자동 모드 시작됨': '▶️ Auto mode started',
+      '🧹 메시지 250개 도달 - 로그 및 상태 초기화': '🧹 250 messages reached - clearing log and state',
+      '✅ 로그/상태 초기화 완료': '✅ Log/state reset complete',
+      
+      // 확장 프로그램 컨텍스트 관련
+      '🔍 확장 프로그램 컨텍스트 검증:': '🔍 Extension context validation:',
+      '❌ 확장 프로그램 컨텍스트 검증 실패:': '❌ Extension context validation failed:',
+      '⚠️ 확장 프로그램 컨텍스트가 무효화되어 메시지 전송을 건너뜁니다.': '⚠️ Extension context invalidated, skipping message send',
+      '❌ 메시지 전송 실패:': '❌ Message send failed:',
+      '메시지 전송 시간 초과': 'Message send timeout',
+      '🔍 getRuntimeURL 호출:': '🔍 getRuntimeURL call:',
+      '⚠️ 확장 프로그램 컨텍스트가 무효화되어 URL을 가져올 수 없습니다.': '⚠️ Extension context invalidated, cannot get URL',
+      '🔗 생성된 URL:': '🔗 Generated URL:',
+      '❌ runtime URL 가져오기 실패:': '❌ Runtime URL fetch failed:',
+      
+      // 프롬프트 모니터링 관련
+      '🔍 Sora 페이지에서 현재 프롬프트 검색 중...': '🔍 Searching for current prompt in Sora page...',
+      '📊 자동 모니터링 설정 복원:': '📊 Auto monitoring settings restored:',
+      '⚙️ 실행주기를 1초로 강제 설정': '⚙️ Forcing execution cycle to 1 second',
+      '⚠️ 확장 프로그램 컨텍스트가 무효화되어 기본값(true)으로 설정': '⚠️ Extension context invalidated, using default (true)',
+      '🔄 카운터 초기화됨': '🔄 Counter reset',
+      '✅ 콘텐츠 스크립트 로드 완료': '✅ Content script load complete',
+      '⚙️ 실행주기를 1초로 설정': '⚙️ Setting execution cycle to 1 second',
+      '🔧 테스트용 로그 오버레이 자동 생성': '🔧 Auto-creating test log overlay',
+      '🔧 테스트용으로 자동 생성된 로그 오버레이입니다.': '🔧 This is an auto-generated test log overlay',
+      '📊 자동 모니터링 상태를 확인하세요.': '📊 Check auto monitoring status',
+      '⚙️ 실행주기: 1초': '⚙️ Execution cycle: 1 second',
+      
+      // 메인 루프 관련
+      '🔄 메인 루프 시작': '🔄 Main loop started',
+      '⏹️ 메인 루프 중지': '⏹️ Main loop stopped',
+      '📊 메인 루프 실행 중': '📊 Main loop running',
+      '✅ 메인 루프 완료': '✅ Main loop completed',
+      '❌ 메인 루프 오류': '❌ Main loop error',
+      
+      // 진행 단계 관련
+      '📋 1단계: 오버레이 관리': '📋 Step 1: Overlay Management',
+      '📊 2단계: 카운터 업데이트': '📊 Step 2: Counter Update',
+      '🔍 3단계: 프롬프트 모니터링': '🔍 Step 3: Prompt Monitoring',
+      '💾 4단계: 자동 저장': '💾 Step 4: Auto Save',
+      '✅ 5단계: 완료': '✅ Step 5: Complete',
+      '🎨 6단계: 이미지 생성': '🎨 Step 6: Image Generation',
+      '📈 7단계: 진행률 업데이트': '📈 Step 7: Progress Update',
+      
+      // 프롬프트 관련
+      '🔍 프롬프트 검색 중': '🔍 Searching for prompt',
+      '✅ 프롬프트 발견': '✅ Prompt found',
+      '❌ 프롬프트 없음': '❌ No prompt found',
+      '🔄 프롬프트 변경 감지': '🔄 Prompt change detected',
+      '📝 새 프롬프트 저장': '📝 Saving new prompt',
+      '⚠️ 중복 프롬프트 발견': '⚠️ Duplicate prompt found',
+      
+      // 이미지 생성 관련
+      '🎨 이미지 생성 시작': '🎨 Image generation started',
+      '⏳ 이미지 생성 중': '⏳ Image generation in progress',
+      '✅ 이미지 생성 완료': '✅ Image generation completed',
+      '❌ 이미지 생성 실패': '❌ Image generation failed',
+      '🔄 이미지 생성 대기': '🔄 Waiting for image generation',
+      
+      // 저장 관련
+      '💾 데이터 저장 중': '💾 Saving data',
+      '✅ 데이터 저장 완료': '✅ Data saved successfully',
+      '❌ 데이터 저장 실패': '❌ Data save failed',
+      '📁 JSON 파일 생성': '📁 Creating JSON file',
+      '📥 파일 다운로드 준비': '📥 Preparing file download',
+      
+      // 상태 관련
+      '🟢 모니터링 활성화': '🟢 Monitoring enabled',
+      '🔴 모니터링 비활성화': '🔴 Monitoring disabled',
+      '⚙️ 설정 저장': '⚙️ Settings saved',
+      '🔄 설정 로드': '🔄 Settings loaded',
+      '🧹 상태 초기화': '🧹 State reset',
+      
+      // 오류 및 경고
+      '⚠️ 경고': '⚠️ Warning',
+      '❌ 오류 발생': '❌ Error occurred',
+      '🔄 재시도 중': '🔄 Retrying',
+      '⏸️ 일시 중지': '⏸️ Paused',
+      '▶️ 재개': '▶️ Resumed',
+      
+      // 언어 변경
+      '🌐 언어가 한국어로 변경되었습니다': '🌐 Language changed to Korean',
+      '🌐 언어가 영어로 변경되었습니다': '🌐 Language changed to English'
+    }
+  };
+  
+  const currentMessages = messageMap[currentLanguage] || messageMap.en;
+  
+  // 정확한 매치가 있으면 번역된 메시지 반환
+  if (currentMessages[message]) {
+    return currentMessages[message];
+  }
+  
+  // 부분 매치 검색 (메시지가 포함된 경우)
+  for (const [original, translated] of Object.entries(currentMessages)) {
+    if (message.includes(original)) {
+      return message.replace(original, translated);
+    }
+  }
+  
+  // 번역할 수 없는 경우 원본 메시지 반환
+  return message;
 }
 
 // 자동 모드 상태 변수 초기화 함수

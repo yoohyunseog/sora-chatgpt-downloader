@@ -7,6 +7,50 @@
     "message": "Advanced auto save extension for Sora ChatGPT library with enhanced features",
     "description": "Extension description"
   },
+  "extensionReady": {
+    "message": "Extension Ready!",
+    "description": "Extension ready message"
+  },
+  "extensionReadyDesc": {
+    "message": "The extension is ready to use with all features enabled.",
+    "description": "Extension ready description"
+  },
+  "proFeaturesAvailable": {
+    "message": "Pro Features Available:",
+    "description": "Pro features section title"
+  },
+  "advancedAutoSave": {
+    "message": "Advanced auto save functionality",
+    "description": "Advanced auto save feature"
+  },
+  "smartFiltering": {
+    "message": "Smart filtering and deduplication",
+    "description": "Smart filtering feature"
+  },
+  "detailedLogging": {
+    "message": "Detailed logging and monitoring",
+    "description": "Detailed logging feature"
+  },
+  "settingsImportExport": {
+    "message": "Settings import/export",
+    "description": "Settings import/export feature"
+  },
+  "enhancedUI": {
+    "message": "Enhanced UI with tabs",
+    "description": "Enhanced UI feature"
+  },
+  "language": {
+    "message": "Language",
+    "description": "Language setting"
+  },
+  "english": {
+    "message": "English",
+    "description": "English language option"
+  },
+  "korean": {
+    "message": "한국어",
+    "description": "Korean language option"
+  },
   "autoSave": {
     "message": "Auto Save",
     "description": "Auto save toggle label"
@@ -46,18 +90,6 @@
   "settings": {
     "message": "Settings",
     "description": "Settings label"
-  },
-  "language": {
-    "message": "Language",
-    "description": "Language setting"
-  },
-  "english": {
-    "message": "English",
-    "description": "English language option"
-  },
-  "korean": {
-    "message": "한국어",
-    "description": "Korean language option"
   },
   "status": {
     "message": "Status",
@@ -167,20 +199,96 @@
     "message": "4. Download JSON file",
     "description": "Step 4 instruction"
   },
-  "advancedFeatures": {
-    "message": "Advanced Features",
-    "description": "Advanced features section"
+  "consoleLogs_controlPanelCreated": {
+    "message": "Control panel created",
+    "description": "Log: control panel created"
   },
-  "realTimeMonitoring": {
-    "message": "Real-time Monitoring",
-    "description": "Real-time monitoring feature"
+  "consoleLogs_autoSaveStarted": {
+    "message": "Auto save started from page (direct execution)",
+    "description": "Log: auto save started"
   },
-  "smartFiltering": {
-    "message": "Smart Filtering",
-    "description": "Smart filtering feature"
+  "consoleLogs_autoSaveStopped": {
+    "message": "Auto save stopped from page",
+    "description": "Log: auto save stopped"
   },
-  "detailedLogging": {
-    "message": "Detailed Logging",
-    "description": "Detailed logging feature"
+  "consoleLogs_autoDownloadToggle": {
+    "message": "Auto download toggle from page:",
+    "description": "Log: auto download toggle"
+  },
+  "consoleLogs_manualSaveExecuted": {
+    "message": "Manual save executed from page",
+    "description": "Log: manual save executed"
+  },
+  "consoleLogs_manualSaveComplete": {
+    "message": "Manual save complete:",
+    "description": "Log: manual save complete"
+  },
+  "consoleLogs_downloadExecuted": {
+    "message": "Download executed from page",
+    "description": "Log: download executed"
+  },
+  "consoleLogs_panelStateSaved": {
+    "message": "Panel state saved",
+    "description": "Log: panel state saved"
+  },
+  "consoleLogs_downloadStarted": {
+    "message": "Download started...",
+    "description": "Log: download started"
+  },
+  "consoleLogs_currentCollectedData": {
+    "message": "Current collected data:",
+    "description": "Log: current collected data"
+  },
+  "consoleLogs_savedData": {
+    "message": "Saved data:",
+    "description": "Log: saved data"
+  },
+  "consoleLogs_downloadData": {
+    "message": "Data to download:",
+    "description": "Log: data to download"
+  },
+  "consoleLogs_downloadComplete": {
+    "message": "Download complete:",
+    "description": "Log: download complete"
+  },
+  "consoleLogs_fileSize": {
+    "message": "File size:",
+    "description": "Log: file size"
+  },
+  "consoleLogs_imageCollectionStarted": {
+    "message": "Image collection started",
+    "description": "Log: image collection started"
+  },
+  "consoleLogs_imageContainersFound": {
+    "message": "Image containers found: $1",
+    "description": "Log: image containers found"
+  },
+  "consoleLogs_completedImageFound": {
+    "message": "Container $1 - First completed image found:",
+    "description": "Log: completed image found"
+  },
+  "consoleLogs_connectedPrompt": {
+    "message": "Connected prompt:",
+    "description": "Log: connected prompt"
+  },
+  "consoleLogs_noCompletedImageFound": {
+    "message": "No completed image found",
+    "description": "Log: no completed image found"
+  },
+  "consoleLogs_promptCollectionStarted": {
+    "message": "Prompt collection started",
+    "description": "Log: prompt collection started"
+  },
+  "languageChanging": {
+    "message": "Changing language",
+    "description": "Language changing message"
+  },
+  "languageChanged": {
+    "message": "Language changed successfully",
+    "description": "Language change complete message"
+  },
+  "languageChangeFailed": {
+    "message": "Failed to change language",
+    "description": "Language change failed message"
   }
 } 
