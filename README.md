@@ -1,6 +1,14 @@
 # 🎨 Sora ChatGPT Auto Save Chrome Extension
 
-A Chrome extension for automatically collecting and managing prompts and images from Sora ChatGPT library.
+A Chrome extension for automatically collecting and managing prompts and images from Sora ChatGPT library with policy violation content support.
+
+## 📦 Version 1.2.0 (Latest)
+
+### 🆕 New Features
+- **Policy Violation Content Support**: Automatically detects and handles policy violation content
+- **Empty URL Handling**: Policy violation content is saved with empty URL and proper metadata
+- **Improved Prompt Extraction**: Enhanced prompt extraction from various content types
+- **Data-Index Based Collection**: Collects content based on data-index order for more reliable results
 
 ## 🌟 Key Features
 
@@ -471,8 +479,8 @@ chrome-extension-test/
 ### Version History
 - **v1.0.0**: Basic auto save functionality
 - **v1.1.0**: Multi-language support added
-- **v1.2.0**: data.json → auto-*.json conversion feature
-- **v1.3.0**: Advanced duplicate check and performance optimization
+- **v1.2.0**: Policy violation content support, improved prompt extraction, data-index based collection
+- **v1.3.0**: Advanced duplicate check and performance optimization (planned)
 - **v2.0.0**: Video upload support (planned with sponsorship)
 
 ## 📞 Support and Contact
