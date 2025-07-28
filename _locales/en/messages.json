@@ -186,8 +186,5 @@
   "languageChangeFailed": {
     "message": "Failed to change language",
     "description": "Language change failed message"
-  },
-  "imageGenerationWaiting": {
-    "message": "Image generation waiting"
   }
 } 
