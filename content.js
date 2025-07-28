@@ -63,6 +63,50 @@ let isPanelCreated = false;
 let pageCountdownTimer = null;
 let pageCountdownInterval = null;
 
+// 누락된 변수들 추가
+let hasNewImageGenerated = false;
+let isImageGenerating = false;
+let imageGenerationStartTime = null;
+let isMonitoring = false;
+
+// 누락된 함수들 추가
+function loadDataJson() {
+    // data.json 파일 로드 함수 (기본 구현)
+    return new Promise((resolve, reject) => {
+        try {
+            fetch(chrome.runtime.getURL('data.json'))
+                .then(response => response.json())
+                .then(data => resolve(data))
+                .catch(error => {
+                    console.warn('data.json 로드 실패:', error);
+                    resolve({ images: [], prompts: [] });
+                });
+        } catch (error) {
+            console.warn('loadDataJson 오류:', error);
+            resolve({ images: [], prompts: [] });
+        }
+    });
+}
+
+function fetchDataJson() {
+    // data.json 데이터 가져오기 함수 (기본 구현)
+    return loadDataJson();
+}
+
+function startMonitoring() {
+    if (!isMonitoring) {
+        isMonitoring = true;
+        console.log('모니터링 시작됨');
+    }
+}
+
+function stopMonitoring() {
+    if (isMonitoring) {
+        isMonitoring = false;
+        console.log('모니터링 중지됨');
+    }
+}
+
 // 중복 검사 관련 함수들
 function calculateSimilarity(str1, str2) {
   try {
@@ -1328,8 +1372,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         } else if (request.action === 'downloadImages') {
             handleDownloadImages(request, sendResponse);
             return true; // 비동기 응답을 위해 true 반환
+        } else if (request.action === 'languageChanged') {
+            handleLanguageChanged(request, sendResponse);
+            return true; // 비동기 응답을 위해 true 반환
         } else {
             // 알 수 없는 액션의 경우 즉시 응답
+            console.warn('⚠️ 처리되지 않은 액션:', request.action);
             sendResponse({ success: false, error: 'Unknown action' });
             return false;
         }
@@ -1450,6 +1498,70 @@ async function handleDownloadImages(request, sendResponse) {
         console.error('이미지 다운로드 오류:', error);
         addLogMessage(`❌ 이미지 다운로드 실패: ${error.message}`);
         sendResponse({ success: false, error: error.message });
+    }
+}
+
+// 언어 변경 처리 함수
+async function handleLanguageChanged(request, sendResponse) {
+    try {
+        console.log('🌐 언어 변경 요청 수신:', request.language);
+        
+        if (request.language) {
+            currentLanguage = request.language;
+            
+            // 패널 언어 업데이트
+            if (typeof changePanelLanguage === 'function') {
+                changePanelLanguage(request.language);
+            }
+            
+            sendResponse({ success: true, message: '언어 변경 완료' });
+        } else {
+            sendResponse({ success: false, error: '언어 정보 없음' });
+        }
+        
+    } catch (error) {
+        console.error('언어 변경 오류:', error);
+        sendResponse({ success: false, error: error.message });
+    }
+}
+
+// 로그 메시지 추가 함수
+function addLogMessage(message) {
+    console.log('📝 로그:', message);
+    
+    // 로그 컨테이너가 있다면 표시
+    const logContainer = document.getElementById('log-container');
+    if (logContainer) {
+        const logEntry = document.createElement('div');
+        logEntry.style.cssText = `
+            padding: 4px 8px;
+            margin-bottom: 2px;
+            border-radius: 4px;
+            font-size: 11px;
+            line-height: 1.4;
+            background: rgba(255,255,255,0.05);
+            border-left: 3px solid transparent;
+            word-wrap: break-word;
+        `;
+        
+        // 정책 위반 콘텐츠 감지 시 특별 표시
+        if (message.includes('정책 위반') || message.includes('policy violation') || message.includes('Policy Violation')) {
+            logEntry.style.backgroundColor = '#fff3cd';
+            logEntry.style.borderLeft = '4px solid #ffc107';
+            logEntry.style.color = '#856404';
+            logEntry.style.fontWeight = 'bold';
+        }
+        
+        const timestamp = new Date().toLocaleTimeString();
+        logEntry.textContent = `[${timestamp}] ${message}`;
+        
+        logContainer.appendChild(logEntry);
+        logContainer.scrollTop = logContainer.scrollHeight;
+        
+        // 로그가 너무 많으면 오래된 것 제거
+        if (logContainer.children.length > 100) {
+            logContainer.removeChild(logContainer.firstChild);
+        }
     }
 }
 
@@ -1819,50 +1931,7 @@ async function savePolicyViolationMetadata(imageData, index) {
     addLogMessage(`📄 정책 위반 메타데이터 저장: ${filename}`);
 }
 
-// 로그 메시지에 정책 위반 콘텐츠 감지 추가
-function addLogMessage(message) {
-    const logContainer = document.getElementById('log-container');
-    if (!logContainer) {
-        console.warn('로그 컨테이너를 찾을 수 없음');
-        return;
-    }
-
-    // 메시지 번역 처리
-    const translatedMessage = translateLogMessage ? translateLogMessage(message) : message;
-    
-    const logEntry = document.createElement('div');
-    logEntry.style.cssText = `
-        padding: 4px 8px;
-        margin-bottom: 2px;
-        border-radius: 4px;
-        font-size: 11px;
-        line-height: 1.4;
-        background: rgba(255,255,255,0.05);
-        border-left: 3px solid transparent;
-        word-wrap: break-word;
-    `;
-    
-    // 정책 위반 콘텐츠 감지 시 특별 표시
-    if (message.includes('정책 위반') || message.includes('policy violation') || message.includes('Policy Violation')) {
-        logEntry.style.backgroundColor = '#fff3cd';
-        logEntry.style.borderLeft = '4px solid #ffc107';
-        logEntry.style.color = '#856404';
-        logEntry.style.fontWeight = 'bold';
-    }
-    
-    const timestamp = new Date().toLocaleTimeString();
-    logEntry.textContent = `[${timestamp}] ${translatedMessage}`;
-    
-    logContainer.appendChild(logEntry);
-    logContainer.scrollTop = logContainer.scrollHeight;
-    
-    // 로그가 너무 많으면 오래된 것 제거
-    if (logContainer.children.length > 100) {
-        logContainer.removeChild(logContainer.firstChild);
-    }
-    
-    console.log('📝 로그:', message);
-}
+// 중복된 addLogMessage 함수 제거됨 (위에 이미 정의됨)
 
 // 안전한 fetch 함수 (타임아웃 포함)
 async function safeFetch(url, options = {}) {
