@@ -13,21 +13,94 @@ function getLocalizedMessage(messageKey, substitutions = []) {
 // 언어 설정
 let currentLanguage = 'en';
 
-// 페이지 로드 시 언어 설정 로드
-chrome.storage.local.get(['language'], function(result) {
-    if (result.language) {
+// 페이지 로드 시 언어 설정 로드 (안전한 방식)
+safeStorageGet(['language'], function(result) {
+    if (result && result.language) {
         currentLanguage = result.language;
         console.log('언어 설정 로드됨:', currentLanguage);
+    } else {
+        console.log('언어 설정 없음, 기본값(en) 사용');
+        currentLanguage = 'en';
     }
 });
 
-// Chrome 저장소 변경 감지 (실시간 언어 변경)
-chrome.storage.onChanged.addListener(function(changes, namespace) {
-    if (namespace === 'local' && changes.language) {
-        const newLanguage = changes.language.newValue;
-        if (newLanguage && newLanguage !== currentLanguage) {
-            console.log('언어 설정 변경 감지:', newLanguage);
-            currentLanguage = newLanguage;
+// Chrome 저장소 변경 감지 (실시간 언어 변경, 안전한 방식)
+try {
+    if (chrome && chrome.storage && chrome.storage.onChanged) {
+        chrome.storage.onChanged.addListener(function(changes, namespace) {
+            try {
+                // 확장 프로그램 컨텍스트 검증
+                if (!isExtensionContextValid()) {
+                    console.warn('⚠️ 확장 프로그램 컨텍스트가 무효화되어 저장소 변경을 처리할 수 없습니다.');
+                    return;
+                }
+
+        if (namespace === 'local' && changes.language) {
+            const newLanguage = changes.language.newValue;
+            if (newLanguage && newLanguage !== currentLanguage) {
+                console.log('언어 설정 변경 감지:', newLanguage);
+                currentLanguage = newLanguage;
+                updateUITexts();
+                
+                // 언어 변경 알림 메시지
+                const changeMessage = currentLanguage === 'ko' ? '🌐 언어가 한국어로 변경되었습니다' : '🌐 Language changed to English';
+                addLogMessage(changeMessage);
+                
+                // 시각적 피드백 (로그 오버레이 깜빡임)
+                const logOverlay = document.getElementById('log-overlay');
+                if (logOverlay) {
+                    logOverlay.style.transition = 'all 0.3s ease';
+                    logOverlay.style.transform = 'scale(1.02)';
+                    logOverlay.style.boxShadow = '0 8px 32px rgba(0, 255, 0, 0.5)';
+                    
+                    // 자동 모드 버튼도 함께 깜빡임
+                    const autoModeButton = document.getElementById('auto-mode-button');
+                    if (autoModeButton) {
+                        autoModeButton.style.transition = 'all 0.3s ease';
+                        autoModeButton.style.transform = 'scale(1.05)';
+                        autoModeButton.style.boxShadow = '0 4px 16px rgba(0, 255, 0, 0.4)';
+                        
+                        setTimeout(() => {
+                            autoModeButton.style.transform = 'scale(1)';
+                            autoModeButton.style.boxShadow = 'none';
+                        }, 300);
+                    }
+                    
+                    setTimeout(() => {
+                        logOverlay.style.transform = 'scale(1)';
+                        logOverlay.style.boxShadow = '0 4px 20px rgba(0, 255, 0, 0.3)';
+                    }, 300);
+                }
+            }
+        }
+            } catch (error) {
+                console.error('❌ 저장소 변경 처리 중 오류:', error);
+            }
+        });
+    } else {
+        console.warn('⚠️ Chrome storage API가 사용 불가합니다.');
+    }
+} catch (error) {
+    console.error('❌ 저장소 변경 감지 초기화 오류:', error);
+}
+
+// 팝업으로부터의 메시지 수신 (안전한 방식)
+try {
+    if (chrome && chrome.runtime && chrome.runtime.onMessage) {
+        chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    try {
+        // 확장 프로그램 컨텍스트 검증
+        if (!isExtensionContextValid()) {
+            console.warn('⚠️ 확장 프로그램 컨텍스트가 무효화되어 메시지를 처리할 수 없습니다.');
+            if (sendResponse) {
+                sendResponse({ success: false, error: 'Extension context invalidated' });
+            }
+            return true;
+        }
+
+        if (request.action === 'languageChanged') {
+            console.log('팝업으로부터 언어 변경 메시지 수신:', request.language);
+            currentLanguage = request.language;
             updateUITexts();
             
             // 언어 변경 알림 메시지
@@ -59,48 +132,35 @@ chrome.storage.onChanged.addListener(function(changes, namespace) {
                     logOverlay.style.boxShadow = '0 4px 20px rgba(0, 255, 0, 0.3)';
                 }, 300);
             }
-        }
-    }
-});
 
-// 팝업으로부터의 메시지 수신
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    if (request.action === 'languageChanged') {
-        console.log('팝업으로부터 언어 변경 메시지 수신:', request.language);
-        currentLanguage = request.language;
-        updateUITexts();
-        
-        // 언어 변경 알림 메시지
-        const changeMessage = currentLanguage === 'ko' ? '🌐 언어가 한국어로 변경되었습니다' : '🌐 Language changed to English';
-        addLogMessage(changeMessage);
-        
-        // 시각적 피드백 (로그 오버레이 깜빡임)
-        const logOverlay = document.getElementById('log-overlay');
-        if (logOverlay) {
-            logOverlay.style.transition = 'all 0.3s ease';
-            logOverlay.style.transform = 'scale(1.02)';
-            logOverlay.style.boxShadow = '0 8px 32px rgba(0, 255, 0, 0.5)';
-            
-            // 자동 모드 버튼도 함께 깜빡임
-            const autoModeButton = document.getElementById('auto-mode-button');
-            if (autoModeButton) {
-                autoModeButton.style.transition = 'all 0.3s ease';
-                autoModeButton.style.transform = 'scale(1.05)';
-                autoModeButton.style.boxShadow = '0 4px 16px rgba(0, 255, 0, 0.4)';
-                
-                setTimeout(() => {
-                    autoModeButton.style.transform = 'scale(1)';
-                    autoModeButton.style.boxShadow = 'none';
-                }, 300);
+            // 성공 응답
+            if (sendResponse) {
+                sendResponse({ success: true, message: '언어 변경 처리 완료' });
             }
-            
-            setTimeout(() => {
-                logOverlay.style.transform = 'scale(1)';
-                logOverlay.style.boxShadow = '0 4px 20px rgba(0, 255, 0, 0.3)';
-            }, 300);
+            return true;
         }
+
+        // 다른 액션들도 처리할 수 있도록 로그 출력
+        console.warn('⚠️ 처리되지 않은 액션:', request.action);
+        if (sendResponse) {
+            sendResponse({ success: false, error: `Unknown action: ${request.action}` });
+        }
+        return true;
+
+        } catch (error) {
+            console.error('❌ 메시지 처리 중 오류:', error);
+            if (sendResponse) {
+                sendResponse({ success: false, error: error.message });
+            }
+            return true;
+        }
+        });
+    } else {
+        console.warn('⚠️ Chrome runtime API가 사용 불가합니다.');
     }
-});
+} catch (error) {
+    console.error('❌ 메시지 수신 초기화 오류:', error);
+}
 
 // UI 텍스트 업데이트 함수
 function updateUITexts() {
@@ -318,120 +378,170 @@ function getRuntimeURL(path) {
   }
 }
 
-// Sora 페이지에서 현재 프롬프트 가져오기
+// Sora 페이지에서 현재 프롬프트 가져오기 (0~7번 data-index 모두 포함)
 function getCurrentSoraPrompt() {
   try {
-    console.log('🔍 Sora 페이지에서 현재 프롬프트 검색 중...');
+    console.log('🔍 Sora 페이지에서 현재 프롬프트 검색 중 (0~7번 data-index)...');
     
-    let currentPrompt = '';
+    const allPrompts = [];
     
-    // 1. 먼저 페이지에서 "Prompt" 텍스트가 포함된 요소들을 찾기
+    // 0. data-index="0"부터 "7"까지 순차적으로 검색
+    for (let i = 0; i <= 7; i++) {
+      console.log(`📍 data-index="${i}" 검색 중...`);
+      
+      // data-index로 요소 찾기
+      const indexElement = document.querySelector(`[data-index="${i}"]`);
+      if (!indexElement) {
+        console.log(`❌ data-index="${i}" 요소 없음`);
+        continue;
+      }
+      
+      // 해당 data-index 내에서 프롬프트 텍스트 찾기
+      const promptContainer = indexElement.querySelector('.text-token-text-primary');
+      if (promptContainer) {
+        const promptText = promptContainer.textContent || promptContainer.innerText || '';
+        if (promptText.trim().length > 10) {
+          allPrompts.push({
+            index: i,
+            text: promptText.trim(),
+            source: `data-index-${i}`
+          });
+          console.log(`✅ data-index="${i}"에서 프롬프트 발견: ${promptText.substring(0, 60)}...`);
+        }
+      }
+      
+      // "Prompt" 텍스트 다음의 프롬프트도 찾기
+      const promptElements = indexElement.querySelectorAll('*');
+      for (const element of promptElements) {
+        const text = element.textContent || element.innerText || '';
+        if (text.includes('Prompt') && text.length > 20) {
+          const promptIndex = text.indexOf('Prompt');
+          const afterPrompt = text.substring(promptIndex + 6).trim();
+          if (afterPrompt && afterPrompt.length > 10 && !afterPrompt.includes('undefined')) {
+            allPrompts.push({
+              index: i,
+              text: afterPrompt,
+              source: `data-index-${i}-prompt-text`
+            });
+            console.log(`✅ data-index="${i}"에서 "Prompt" 텍스트 발견: ${afterPrompt.substring(0, 60)}...`);
+          }
+        }
+      }
+    }
+    
+    // 1. 추가로 일반적인 프롬프트 검색 (생성 중/완성된 프롬프트 모두 포함)
     const promptElements = document.querySelectorAll('div, span, p');
-    const promptTexts = [];
     
     for (const element of promptElements) {
       const text = element.textContent || element.innerText || '';
       if (text.includes('Prompt') && text.length > 10) {
-        // Prompt 다음에 오는 텍스트 찾기
         const promptIndex = text.indexOf('Prompt');
         const afterPrompt = text.substring(promptIndex + 6).trim();
         if (afterPrompt && afterPrompt.length > 10 && !afterPrompt.includes('undefined')) {
-          promptTexts.push(afterPrompt);
+          allPrompts.push({
+            index: 'general',
+            text: afterPrompt,
+            source: 'general-prompt-search'
+          });
         }
       }
     }
     
-    // 2. 특정 클래스에서 프롬프트 찾기 (Sora 페이지 구조에 맞춤)
-    const textPrimaryElements = document.querySelectorAll('.text-token-text-primary');
-    for (const element of textPrimaryElements) {
-      const text = element.textContent || element.innerText || '';
-      if (text.length > 20 && text.length < 1000 && 
-          !text.includes('undefined') && 
-          !text.includes('Prompt') &&
-          (text.includes('어두운') || text.includes('밤') || text.includes('남성') || 
-           text.includes('배경') || text.includes('장면') || text.includes('그림자') ||
-           text.includes('도시') || text.includes('산') || text.includes('호수') ||
-           text.includes('디지털') || text.includes('추상') || text.includes('미스터리'))) {
-        promptTexts.push(text.trim());
-      }
+         // 2. .text-token-text-primary 클래스에서 추가 프롬프트 찾기
+     const textPrimaryElements = document.querySelectorAll('.text-token-text-primary');
+     for (const element of textPrimaryElements) {
+       const text = element.textContent || element.innerText || '';
+       if (text.length > 20 && text.length < 1000 && 
+           !text.includes('undefined') && 
+           !text.includes('Today') &&
+           !text.includes('Image Generation') &&
+           !text.includes('Generated image') &&
+           // 시간 패턴 제외 (2:56pm, 오전/오후 등)
+           !/^\d{1,2}:\d{2}(?:am|pm)$/.test(text.trim()) &&
+           !/^오전|오후\s*\d{1,2}:\d{2}$/.test(text.trim()) &&
+           // 단순한 제목이나 URL이 아닌 실제 프롬프트 내용
+           !text.startsWith('http') &&
+           !text.match(/^[a-zA-Z\s]{1,30}$/) && // 영어 단어만 있는 짧은 제목 제외
+           // 문장 형태의 프롬프트만 추출 (한국어 조사나 구두점 포함)
+           (text.includes('을') || text.includes('를') || text.includes('이') || text.includes('가') || 
+            text.includes('에서') || text.includes('의') || text.includes('과') || text.includes('와') ||
+            text.includes('하고') || text.includes('있는') || text.includes('그려') || text.includes('표현') ||
+            text.includes('모습') || text.includes('장면') || text.includes('배경') || text.includes('주세요') ||
+            text.includes('.') || text.includes('다') || text.includes('요'))) {
+         allPrompts.push({
+           index: 'text-primary',
+           text: text.trim(),
+           source: 'text-token-text-primary'
+         });
+         console.log(`✅ .text-token-text-primary에서 프롬프트 발견: ${text.substring(0, 60)}...`);
+       }
+     }
+     
+     // 3. 중복 제거 및 최종 프롬프트 구성
+     console.log(`📊 총 발견된 프롬프트 수: ${allPrompts.length}개`);
+     
+     if (allPrompts.length === 0) {
+       console.log('❌ 프롬프트를 찾을 수 없음');
+       return '';
+     }
+     
+     // 중복 제거 (텍스트 기준)
+     const uniquePrompts = [];
+     const seenTexts = new Set();
+     
+     for (const prompt of allPrompts) {
+       if (!seenTexts.has(prompt.text)) {
+         seenTexts.add(prompt.text);
+         uniquePrompts.push(prompt);
+       }
+     }
+     
+     console.log(`🔍 중복 제거 후 고유 프롬프트 수: ${uniquePrompts.length}개`);
+     
+     // 각 프롬프트 로그 출력
+     uniquePrompts.forEach((prompt, index) => {
+       console.log(`   프롬프트 ${index + 1} [${prompt.source}]: ${prompt.text.substring(0, 80)}...`);
+     });
+     
+     // 모든 고유 프롬프트를 하나로 합치기 (구분자로 분리)
+     const finalPrompt = uniquePrompts.map(p => p.text).join(' | ');
+     console.log('✅ 0~7번 data-index 포함 모든 프롬프트 수집 완료:', finalPrompt.substring(0, 200) + '...');
+     
+     return finalPrompt.trim();
+    
+    
+      } catch (error) {
+      console.error('❌ 현재 프롬프트 가져오기 실패:', error);
+      return '';
     }
-    
-    // 3. 가장 긴 프롬프트 텍스트 선택 (일반적으로 실제 프롬프트가 가장 길다)
-    if (promptTexts.length > 0) {
-      promptTexts.sort((a, b) => b.length - a.length);
-      currentPrompt = promptTexts[0];
-      console.log('✅ 프롬프트 텍스트 발견:', currentPrompt.substring(0, 100) + '...');
-    }
-    
-    // 4. 여전히 찾지 못했다면, 특정 클래스나 구조를 가진 요소에서 찾기
-    if (!currentPrompt.trim()) {
-      // Sora 페이지의 특정 구조에서 프롬프트 찾기
-      const promptContainers = document.querySelectorAll('[class*="text-token-text-primary"]');
-      for (const container of promptContainers) {
-        const text = container.textContent || container.innerText || '';
-        if (text.length > 20 && text.length < 1000 && 
-            !text.includes('undefined') && 
-            (text.includes('어두운') || text.includes('밤') || text.includes('남성') || 
-             text.includes('배경') || text.includes('장면') || text.includes('그림자'))) {
-          currentPrompt = text.trim();
-          console.log('✅ 프롬프트 컨테이너에서 발견:', currentPrompt.substring(0, 100) + '...');
-          break;
-        }
-      }
-    }
-    
-    // 5. 마지막으로 일반적인 프롬프트 입력 필드 찾기
-    if (!currentPrompt.trim()) {
-      const promptSelectors = [
-        'textarea[placeholder*="prompt"]',
-        'textarea[placeholder*="프롬프트"]',
-        'textarea[placeholder*="Describe"]',
-        'textarea[placeholder*="설명"]',
-        'textarea[data-testid="prompt-input"]',
-        'textarea[name="prompt"]',
-        'textarea[id*="prompt"]',
-        'textarea[class*="prompt"]',
-        'div[contenteditable="true"]',
-        'input[placeholder*="prompt"]',
-        'input[placeholder*="프롬프트"]'
-      ];
-      
-      for (const selector of promptSelectors) {
-        const promptElement = document.querySelector(selector);
-        if (promptElement) {
-          console.log('✅ 프롬프트 입력 필드 발견:', selector);
-          if (promptElement.tagName === 'TEXTAREA') {
-            currentPrompt = promptElement.value || promptElement.textContent || '';
-          } else if (promptElement.getAttribute('contenteditable') === 'true') {
-            currentPrompt = promptElement.textContent || promptElement.innerText || '';
-          } else if (promptElement.tagName === 'INPUT') {
-            currentPrompt = promptElement.value || '';
-          }
-          break;
-        }
-      }
-    }
-    
-    console.log('📝 최종 프롬프트:', currentPrompt);
-    
-    // 여러 프롬프트가 합쳐져 있는지 확인하고 분리
-    const separatedPrompts = separatePrompts(currentPrompt);
-    
-    if (separatedPrompts.length > 1) {
-      console.log(`🔍 ${separatedPrompts.length}개의 프롬프트로 분리됨`);
-      // 첫 번째 프롬프트만 반환 (가장 최근 것)
-      return separatedPrompts[0].trim();
-    }
-    
-    return currentPrompt.trim();
-    
-  } catch (error) {
-    console.error('❌ 현재 프롬프트 가져오기 실패:', error);
-    return '';
   }
-}
-
-// 여러 프롬프트를 분리하는 함수
+  
+  // 이미지 생성 중인지 확인하는 함수
+  function checkIfImageGenerating() {
+    try {
+      // Sora 로딩 스피너 확인
+      const soraSpinner = document.querySelector('svg[viewBox="0 0 120 120"] circle[class*="animate-spin"]');
+      const soraLoadingContainer = document.querySelector('div[class*="bg-token-bg-secondary"] svg[viewBox="0 0 120 120"]');
+      
+      // 일반적인 로딩 요소들 확인
+      const generalLoading = document.querySelector('[class*="loading"], [class*="spinner"], [class*="progress"]');
+      
+      const isGenerating = !!(soraSpinner || soraLoadingContainer || generalLoading);
+      
+      if (isGenerating) {
+        console.log('🔄 이미지 생성 중 감지됨');
+      } else {
+        console.log('✅ 이미지 생성 완료 상태');
+      }
+      
+      return isGenerating;
+    } catch (error) {
+      console.error('❌ 이미지 생성 상태 확인 실패:', error);
+      return false;
+    }
+  }
+  
+  // 여러 프롬프트를 분리하는 함수
 function separatePrompts(text) {
   const prompts = [];
   
@@ -503,207 +613,226 @@ function separatePrompts(text) {
   return prompts;
 }
 
-// 프롬프트 중복 검사 상태 머신 변수들
-let promptCheckState = 0;
-let currentPromptData = null;
-let promptListData = null;
-let currentPromptIndex = 0;
-let duplicateMatches = [];
-let highestSimilarity = 0;
-let isCheckingInProgress = false;
+// 프롬프트 중복 검사 관련 변수들 (더 이상 사용하지 않음)
 
-// 프롬프트 중복 검사 함수 (setInterval 기반 상태 머신)
-function checkPromptDuplication(currentPrompt, promptList) {
-  return new Promise((resolve) => {
-    try {
-      addLogMessage('🔍 프롬프트 중복 검사 시작...');
-      
-      // promptList 안전성 검사
-      if (!promptList) {
-        addLogMessage('❌ promptList가 undefined 또는 null입니다');
-        resolve({
-          isDuplicate: false,
-          matches: [],
-          similarity: 0,
-          error: 'promptList is undefined or null'
-        });
-        return;
+// 최종 프롬프트 유효성 검증 함수 (최소한의 검증만)
+function validateFinalPrompt(finalPrompt) {
+  console.log('🔍 최종 프롬프트 유효성 검사 시작:', finalPrompt?.substring(0, 50) + '...');
+  
+  // 1. 프롬프트 존재 여부 확인
+  if (!finalPrompt || typeof finalPrompt !== 'string') {
+    console.log('❌ 최종 프롬프트가 존재하지 않음');
+    return {
+      isValid: false,
+      error: '최종 프롬프트가 존재하지 않습니다.',
+      errorCode: 'NO_PROMPT'
+    };
+  }
+  
+  // 2. 공백 제거 후 실제 내용 확인
+  const trimmedPrompt = finalPrompt.trim();
+  if (trimmedPrompt.length === 0) {
+    console.log('❌ 최종 프롬프트가 공백만 있음');
+    return {
+      isValid: false,
+      error: '최종 프롬프트가 공백만 있습니다.',
+      errorCode: 'EMPTY_OR_WHITESPACE'
+    };
+  }
+  
+  // 3. 무의미한 내용만 걸러내기 (최소한의 검증)
+  const invalidPatterns = [
+    /^[\s\n\r\t]*$/, // 공백만 있는 경우
+    /^[0-9\s:]+(?:am|pm)?[\s]*$/i, // 시간 패턴만 있는 경우 (2:56pm, 2:56 AM 등)
+    /^https?:\/\/[^\s]+[\s]*$/ // URL만 있는 경우
+  ];
+  
+  for (const pattern of invalidPatterns) {
+    if (pattern.test(trimmedPrompt)) {
+      console.log('❌ 최종 프롬프트가 무의미한 패턴:', pattern);
+      return {
+        isValid: false,
+        error: '최종 프롬프트가 무의미한 내용입니다 (시간, URL 등).',
+        errorCode: 'MEANINGLESS_CONTENT'
+      };
+    }
+  }
+  
+  console.log('✅ 최종 프롬프트 유효성 검사 통과:', trimmedPrompt.length, '자');
+  return {
+    isValid: true,
+    cleanedPrompt: trimmedPrompt,
+    wordCount: trimmedPrompt.split(/\s+/).length
+  };
+}
+
+// 단순한 단어 기반 중복 검사 함수 (최종 프롬프트로만 검사)
+function checkPromptDuplication(finalPrompt, dataJsonPrompts) {
+  console.log('🔍 최종 프롬프트 기반 중복 검사 시작:', finalPrompt?.substring(0, 50) + '...');
+  
+  // 1. 최종 프롬프트 유효성 검사 먼저 수행
+  const validation = validateFinalPrompt(finalPrompt);
+  if (!validation.isValid) {
+    console.log('❌ 최종 프롬프트 유효성 검사 실패:', validation.error);
+    return {
+      isDuplicate: false,
+      matchRatio: 0,
+      matchedWords: [],
+      matchedPrompt: '',
+      matchIndex: -1,
+      validationError: validation.error,
+      errorCode: validation.errorCode
+    };
+  }
+  
+  // 2. data.json 프롬프트 데이터 확인
+  if (!dataJsonPrompts || dataJsonPrompts.length === 0) {
+    console.log('❌ data.json 프롬프트 데이터 부족');
+    return {
+      isDuplicate: false,
+      matchRatio: 0,
+      matchedWords: [],
+      matchedPrompt: '',
+      matchIndex: -1,
+      validationError: 'data.json 프롬프트 데이터가 없습니다.',
+      errorCode: 'NO_DATA'
+    };
+  }
+  
+  console.log('✅ 최종 프롬프트 유효성 검사 통과 - 중복 검사 진행');
+  const cleanedFinalPrompt = validation.cleanedPrompt;
+  
+  // 3. 최종 프롬프트를 소문자로 변환하여 중복 검사 준비
+  const finalPromptLower = cleanedFinalPrompt.toLowerCase().trim();
+  
+  // 4. data.json의 각 프롬프트와 최종 프롬프트 비교
+  console.log(`🔍 ${dataJsonPrompts.length}개의 data.json 프롬프트와 비교 시작`);
+  
+  for (let i = 0; i < dataJsonPrompts.length; i++) {
+    const dataPrompt = dataJsonPrompts[i];
+    const promptContent = dataPrompt.content || dataPrompt.text || dataPrompt;
+    
+    if (!promptContent || typeof promptContent !== 'string') continue;
+    
+    // data.json 프롬프트를 공백으로 분할하여 단어 배열 생성
+    const words = promptContent.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0);
+    console.log(`📝 검사 중 [${i+1}/${dataJsonPrompts.length}]: ${words.length}개 단어`);
+    
+    if (words.length === 0) continue;
+    
+    // 각 단어가 최종 프롬프트에 포함되어 있는지 확인
+    let matchedWords = 0;
+    const matchedWordsList = [];
+    
+    for (const word of words) {
+      if (finalPromptLower.includes(word)) {
+        matchedWords++;
+        matchedWordsList.push(word);
       }
-      
-      if (!Array.isArray(promptList)) {
-        addLogMessage('❌ promptList가 배열이 아닙니다');
-        resolve({
-          isDuplicate: false,
-          matches: [],
-          similarity: 0,
-          error: 'promptList is not an array'
-        });
-        return;
-      }
-      
-      addLogMessage(`📋 비교 대상 프롬프트 수: ${promptList.length}개`);
-      
-      if (!currentPrompt || promptList.length === 0) {
-        addLogMessage('❌ 중복 검사를 위한 데이터가 부족함');
-        resolve({
-        isDuplicate: false,
-        matches: [],
-        similarity: 0
-        });
-        return;
     }
     
-      const duplicateMatches = [];
-    let highestSimilarity = 0;
+    // 매칭 비율 계산 (50% 이상 매칭되면 중복으로 판단)
+    const matchRatio = (matchedWords / words.length) * 100;
+    console.log(`🔍 단어 매칭률 [${i+1}]: ${matchedWords}/${words.length} (${matchRatio.toFixed(1)}%)`);
     
-    // 각 프롬프트와 비교
-      for (let i = 0; i < promptList.length; i++) {
-        const prompt = promptList[i];
-        const promptContent = prompt.content || prompt || '';
-      const promptTitle = prompt.title || '';
-      
-      // 제목과 내용 모두 비교
-      const titleSimilarity = calculateSimilarity(currentPrompt, promptTitle);
-      const contentSimilarity = calculateSimilarity(currentPrompt, promptContent);
-      
-      // 더 높은 유사도를 사용
-      const similarity = Math.max(titleSimilarity, contentSimilarity);
-      
-        // 각 비교 과정을 로그로 출력
-        const truncatedCurrent = currentPrompt.length > 20 ? currentPrompt.substring(0, 20) + '...' : currentPrompt;
-        const truncatedContent = promptContent.length > 20 ? promptContent.substring(0, 20) + '...' : promptContent;
-        const truncatedTitle = promptTitle.length > 20 ? promptTitle.substring(0, 20) + '...' : promptTitle;
-        
-        addLogMessage(`🔍 비교 ${i+1}/${promptList.length}: 유사도 분석`);
-        addLogMessage(`   현재 프롬프트: "${currentPrompt}"`);
-        addLogMessage(`   비교 대상 제목: "${promptTitle}"`);
-        addLogMessage(`   비교 대상 내용: "${promptContent}"`);
-        addLogMessage(`   제목 유사도: ${titleSimilarity.toFixed(1)}%`);
-        addLogMessage(`   내용 유사도: ${contentSimilarity.toFixed(1)}%`);
-        addLogMessage(`   최종 유사도: ${similarity.toFixed(1)}% (${similarity >= 80 ? '중복' : '중복아님'})`);
-      
-      // 유사도가 80% 이상이면 중복으로 판정
-      if (similarity >= 80) {
-        const matchType = similarity >= 95 ? 'exact' : 
-                         similarity >= 90 ? 'partial' : 'similar';
-        
-          duplicateMatches.push({
-          prompt: prompt,
-          similarity: similarity,
-          type: matchType,
-            index: i
-        });
-        
-        if (similarity > highestSimilarity) {
-          highestSimilarity = similarity;
-        }
-          
-          addLogMessage(`🎯 중복 발견! (유사도: ${similarity.toFixed(1)}%)`);
-      }
-      }
+    if (matchRatio >= 50) {
+      console.log(`✅ 중복 발견! 매칭률: ${matchRatio.toFixed(1)}%`, matchedWordsList);
+      return {
+        isDuplicate: true,
+        matchRatio: matchRatio,
+        matchedWords: matchedWordsList,
+        matchedPrompt: promptContent,
+        matchIndex: i
+      };
+    }
+  }
+  
+  console.log('✅ 중복 없음');
+  return {
+    isDuplicate: false,
+    matchRatio: 0,
+    matchedWords: [],
+    matchedPrompt: '',
+    matchIndex: -1
+  };
+}
+
+// 확장 프로그램 컨텍스트 유효성 검사 함수
+function isExtensionContextValid() {
+  try {
+    // Chrome API 접근 가능 여부 확인
+    if (!chrome || !chrome.runtime) {
+      console.warn('🔍 확장 프로그램 컨텍스트 검증: chrome.runtime 없음');
+      return false;
+    }
     
-    // 유사도 순으로 정렬
-      duplicateMatches.sort((a, b) => b.similarity - a.similarity);
+    // Extension ID 접근 가능 여부 확인
+    if (!chrome.runtime.id) {
+      console.warn('🔍 확장 프로그램 컨텍스트 검증: runtime.id 없음');
+      return false;
+    }
     
-    const result = {
-        isDuplicate: duplicateMatches.length > 0,
-        matches: duplicateMatches,
-      similarity: highestSimilarity
+    // 컨텍스트가 유효한지 테스트 (간단한 API 호출)
+    chrome.runtime.getManifest();
+    
+    return true;
+  } catch (error) {
+    console.warn('❌ 확장 프로그램 컨텍스트 검증 실패:', error.message);
+    return false;
+  }
+}
+
+// Runtime URL 가져오기 함수 (컨텍스트 검증 포함)
+function getRuntimeURL(path) {
+  try {
+    console.log('🔍 getRuntimeURL 호출:', path);
+    
+    if (!isExtensionContextValid()) {
+      console.warn('⚠️ 확장 프로그램 컨텍스트가 무효화되어 URL을 가져올 수 없습니다.');
+      return null;
+    }
+    
+    const url = chrome.runtime.getURL(path);
+    console.log('🔗 생성된 URL:', url);
+    return url;
+  } catch (error) {
+    console.error('❌ runtime URL 가져오기 실패:', error);
+    return null;
+  }
+}
+
+// 모니터링 설정 저장 함수 (컨텍스트 무효화 방지)
+function saveMonitoringSettings() {
+  try {
+    // 컨텍스트 유효성 검사
+    if (!isExtensionContextValid()) {
+      console.warn('⚠️ 확장 프로그램 컨텍스트가 무효화됨 - 설정 저장 건너뜀');
+      addLogMessage('⚠️ 확장 프로그램 컨텍스트가 무효화됨 - 페이지를 새로고침해주세요.');
+      return;
+    }
+
+    const settings = {
+      language: currentLanguage,
+      isAutoMonitoringEnabled: typeof isAutoMonitoringEnabled !== 'undefined' ? isAutoMonitoringEnabled : true,
+      monitoringState: typeof monitoringState !== 'undefined' ? monitoringState : 0,
+      monitoringCounter: typeof monitoringCounter !== 'undefined' ? monitoringCounter : 0,
+      mainLoopState: typeof mainLoopState !== 'undefined' ? mainLoopState : 0,
+      lastUpdated: new Date().toISOString()
     };
     
-      if (duplicateMatches.length > 0) {
-        addLogMessage(`✅ 중복 검사 완료 - ${duplicateMatches.length}개 중복 발견`);
-        addLogMessage(`📊 최고 유사도: ${highestSimilarity.toFixed(1)}%`);
-        addLogMessage('📋 중복된 프롬프트 상세:');
-        duplicateMatches.forEach((match, index) => {
-          try {
-            const matchText = match.prompt && match.prompt.content ? match.prompt.content : 
-                             (match.prompt || match.text || '');
-            const truncatedMatch = matchText.length > 50 ? matchText.substring(0, 50) + '...' : matchText;
-            addLogMessage(`   ${index + 1}. 유사도 ${match.similarity.toFixed(1)}%: "${truncatedMatch}"`);
-          } catch (error) {
-            addLogMessage(`   ${index + 1}. 유사도 ${match.similarity.toFixed(1)}%: [프롬프트 텍스트 추출 실패]`);
-          }
-        });
+    chrome.storage.local.set({ soraAutoImageSettings: settings }, function() {
+      if (chrome.runtime.lastError) {
+        console.error('설정 저장 실패:', chrome.runtime.lastError);
+        addLogMessage('⚠️ 설정 저장 실패: ' + chrome.runtime.lastError.message);
       } else {
-        addLogMessage('✅ 중복 검사 완료 - 중복 없음');
-        addLogMessage(`📊 모든 프롬프트와의 최고 유사도: ${highestSimilarity.toFixed(1)}%`);
+        console.log('✅ 모니터링 설정 저장 완료:', settings);
+        addLogMessage('💾 모니터링 설정 자동 저장 완료');
       }
-      
-      resolve(result);
-    
+    });
   } catch (error) {
-      addLogMessage(`❌ 프롬프트 중복 검사 오류: ${error.message}`);
-      resolve({
-      isDuplicate: false,
-      matches: [],
-      similarity: 0,
-      error: error.message
-      });
+    console.error('모니터링 설정 저장 중 오류:', error);
+    addLogMessage('⚠️ 확장 프로그램 컨텍스트가 무효화되어 설정을 저장할 수 없습니다. 페이지를 새로고침해주세요.');
   }
-  });
-}
-
-// 문자열 유사도 계산 함수
-function calculateSimilarity(str1, str2) {
-  try {
-    const longer = str1.length > str2.length ? str1 : str2;
-    const shorter = str1.length > str2.length ? str2 : str1;
-    
-    if (longer.length === 0) return 100;
-    
-    const editDistance = levenshteinDistance(longer, shorter);
-    return (longer.length - editDistance) / longer.length * 100;
-  } catch (error) {
-    return 0;
-  }
-}
-
-// 키워드 기반 유사도 계산 함수
-function calculateKeywordSimilarity(str1, str2) {
-  try {
-    const keywords1 = str1.split(/\s+/).filter(word => word.length > 2);
-    const keywords2 = str2.split(/\s+/).filter(word => word.length > 2);
-    
-    if (keywords1.length === 0 || keywords2.length === 0) return 0;
-    
-    const commonKeywords = keywords1.filter(keyword => 
-      keywords2.some(k => k.includes(keyword) || keyword.includes(k))
-    );
-    
-    return (commonKeywords.length / Math.max(keywords1.length, keywords2.length)) * 100;
-  } catch (error) {
-    return 0;
-  }
-}
-
-// Levenshtein 거리 계산 함수
-function levenshteinDistance(str1, str2) {
-  const matrix = [];
-  
-  for (let i = 0; i <= str2.length; i++) {
-    matrix[i] = [i];
-  }
-  
-  for (let j = 0; j <= str1.length; j++) {
-    matrix[0][j] = j;
-  }
-  
-  for (let i = 1; i <= str2.length; i++) {
-    for (let j = 1; j <= str1.length; j++) {
-      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j] + 1
-        );
-      }
-    }
-  }
-  
-  return matrix[str2.length][str1.length];
 }
 
 // 콘텐츠 스크립트에서 프롬프트 데이터 로드 테스트 함수
@@ -741,9 +870,6 @@ async function testPromptDataLoading() {
     // 프롬프트 중복 검사
     if (currentPrompt && data.prompts) {
       const duplicationResult = checkPromptDuplication(currentPrompt, data.prompts);
-      
-      // 중복 검사 결과를 페이지에 표시
-      // displayDuplicationResult(currentPrompt, duplicationResult, data.prompts); // 비활성화됨
       
       // 팝업에서 사용할 수 있도록 구조화된 데이터 반환
       return {
@@ -936,7 +1062,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       console.error('실행주기 설정 실패:', error);
       sendResponseSafe({ 
         success: false, 
-        error: '실행주기는 항상 1초로 고정됩니다.'
+        error: '실행주기는 항상 5초로 고정됩니다.'
       });
     }
     
@@ -999,7 +1125,7 @@ let monitoringCounter = 0; // 모니터링 실행 횟수 카운터
 let logOverlay = null; // 로그 오버레이 요소
 let logContainer = null; // 로그 컨테이너
 let autoSaveTimer = null; // 자동 저장 타이머
-let monitoringIntervalMs = 1000; // 실행주기 (기본값: 1초)
+let monitoringIntervalMs = 5000; // 실행주기 (기본값: 5초)
 
 // 전역 main setInterval 관리
 let globalIntervalId = null;
@@ -1008,7 +1134,7 @@ let mainLoopState = 0; // mainLoop 상태 (0~4)
 let isGlobalIntervalRunning = false; // main setInterval 실행 상태
 let isPaused = false; // setInterval 일시 중지 상태
 let activeTimeouts = []; // 활성 setTimeout들을 추적
-const MAIN_LOOP_INTERVAL = 1000; // 1초 고정
+const MAIN_LOOP_INTERVAL = 5000; // 5초 고정
 
 // setTimeout 추적 헬퍼 함수
 function trackedSetTimeout(callback, delay) {
@@ -1034,8 +1160,8 @@ function startMainLoop() {
   createLogOverlay(); // ← 반드시 오버레이 생성!
   globalIntervalId = setInterval(mainLoop, MAIN_LOOP_INTERVAL);
   isGlobalIntervalRunning = true;
-  console.log('▶️ main setInterval 시작 (1초 주기)');
-  addLogMessage(currentLanguage === 'ko' ? '▶️ main setInterval 시작 (1초 주기)' : '▶️ Main setInterval started (1 second cycle)');
+  console.log('▶️ main setInterval 시작 (5초 주기)');
+  addLogMessage(currentLanguage === 'ko' ? '▶️ main setInterval 시작 (5초 주기)' : '▶️ Main setInterval started (5 second cycle)');
 }
 
 function stopMainLoop() {
@@ -1076,6 +1202,11 @@ function mainLoop() {
   // 일시 중지 상태면 실행 안함
   if (isPaused) return;
 
+  // 진행 패널 데이터 업데이트 (매 루프마다)
+  if (typeof updateProgressPanelData === 'function') {
+    updateProgressPanelData();
+  }
+
   switch (mainLoopState) {
     case 0: // 초기화 상태
       updateProgressStep(0);
@@ -1106,17 +1237,19 @@ function mainLoop() {
       addLogMessage(currentLanguage === 'ko' ? '🔍 Step 3: 프롬프트 모니터링 시작...' : '🔍 Step 3: Prompt monitoring started...');
       trackedSetTimeout(() => {
         addLogMessage(currentLanguage === 'ko' 
-          ? '📋 promptMonitoringStep() 호출 전 promptData 상태: ' + (promptData ? '존재함' : 'null')
-          : '📋 promptData status before promptMonitoringStep(): ' + (promptData ? 'exists' : 'null'));
-        promptMonitoringStep();
+          ? '📋 단순화된 프롬프트 모니터링 시작'
+          : '📋 Simplified prompt monitoring started');
+        // 기존의 복잡한 promptMonitoringStep 함수 대신 단순한 로직 사용
+        // 더 이상 복잡한 상태 머신을 사용하지 않음
         addLogMessage(currentLanguage === 'ko'
-          ? '📋 promptMonitoringStep() 호출 후 promptData 상태: ' + (promptData ? '존재함' : 'null')
-          : '📋 promptData status after promptMonitoringStep(): ' + (promptData ? 'exists' : 'null'));
+          ? '✅ 단순화된 프롬프트 모니터링 완료'
+          : '✅ Simplified prompt monitoring completed');
         addLogMessage(currentLanguage === 'ko' ? '✅ Step 3: 프롬프트 모니터링 완료' : '✅ Step 3: Prompt monitoring completed');
         trackedSetTimeout(() => {
           updateProgressStep(2, 'success');
           mainLoopState = 3;
           addLogMessage(currentLanguage === 'ko' ? '🔄 상태 변경: 2→3' : '🔄 State change: 2→3');
+          addLogMessage(currentLanguage === 'ko' ? '🔧 중복 검사 단계로 강제 진행' : '🔧 Forcing to duplicate check stage');
           isPaused = false;
         }, MAIN_LOOP_INTERVAL);
       }, MAIN_LOOP_INTERVAL);
@@ -1125,6 +1258,7 @@ function mainLoop() {
     case 3: // 프롬프트 출력 상태 (딜레이 적용)
       updateProgressStep(3);
       isPaused = true;
+      addLogMessage(currentLanguage === 'ko' ? '🎯 case 3 진입 - 중복 검사 단계 시작' : '🎯 Entering case 3 - duplicate check stage started');
       addLogMessage(currentLanguage === 'ko' ? '📝 Step 4: 페이지 프롬프트 가져오기 시작...' : '📝 Step 4: Getting page prompt started...');
       trackedSetTimeout(() => {
         // 1. 현재 페이지 프롬프트 가져오기
@@ -1145,6 +1279,7 @@ function mainLoop() {
         addLogMessage(currentLanguage === 'ko' ? '📝 data.json 프롬프트들 가져오기 시작...' : '📝 Getting data.json prompts started...');
         const dataUrl = getRuntimeURL('data.json');
         if (dataUrl) {
+          addLogMessage(currentLanguage === 'ko' ? '🔗 data.json URL 생성 성공' : '🔗 data.json URL created successfully');
           fetch(dataUrl)
             .then(response => response.json())
             .then(data => {
@@ -1162,52 +1297,87 @@ function mainLoop() {
                     : `📋 data.json prompt ${index + 1}: "${shortContent}"`);
                 });
                 
-                // 3. 중복 검사 실행
+                // 3. 중복 검사 실행 (최종 프롬프트로만)
                 if (currentPrompt && data.prompts && Array.isArray(data.prompts)) {
-                  addLogMessage(currentLanguage === 'ko' ? '🔍 중복 검사 시작...' : '🔍 Duplicate check started...');
+                  addLogMessage(currentLanguage === 'ko' ? '🔍 최종 프롬프트 기반 중복 검사 시작...' : '🔍 Final prompt based duplicate check started...');
                   addLogMessage(currentLanguage === 'ko'
-                    ? `📋 전달할 프롬프트 데이터: ${data.prompts.length}개`
-                    : `📋 Prompt data to pass: ${data.prompts.length} items`);
-                  checkPromptDuplication(currentPrompt, data.prompts)
-                    .then(result => {
-                      // 중복 검사 결과를 전역 변수에 저장
-                      window.lastDuplicationResult = result;
-                      
-                      if (result.isDuplicate && result.matches && Array.isArray(result.matches)) {
-                        addLogMessage(currentLanguage === 'ko'
-                          ? `⚠️ 중복 프롬프트 발견: ${result.matches.length}개 매치`
-                          : `⚠️ Duplicate prompt found: ${result.matches.length} matches`);
-                        addLogMessage(currentLanguage === 'ko'
-                          ? `📈 최고 유사도: ${result.similarity.toFixed(1)}%`
-                          : `📈 Highest similarity: ${result.similarity.toFixed(1)}%`);
-                        result.matches.forEach((match, index) => {
-                          try {
-                            const matchText = match.text || (match.prompt && match.prompt.content) || match.prompt || '';
-                            const shortMatch = matchText.length > 50 ? matchText.substring(0, 50) + '...' : matchText;
-                            addLogMessage(currentLanguage === 'ko'
-                              ? `   매치 ${index + 1}: "${shortMatch}" (${match.similarity.toFixed(1)}%)`
-                              : `   Match ${index + 1}: "${shortMatch}" (${match.similarity.toFixed(1)}%)`);
-                          } catch (error) {
-                            addLogMessage(currentLanguage === 'ko'
-                              ? `   매치 ${index + 1}: [텍스트 추출 실패] (${match.similarity.toFixed(1)}%)`
-                              : `   Match ${index + 1}: [Text extraction failed] (${match.similarity.toFixed(1)}%)`);
-                          }
-                        });
-                      } else {
-                        addLogMessage(currentLanguage === 'ko' ? '✅ 중복 없음 - 새로운 프롬프트' : '✅ No duplicates - new prompt');
-                      }
-                    })
-                    .catch(error => {
-                      addLogMessage(currentLanguage === 'ko' ? '❌ 중복 검사 실패: ' + error.message : '❌ Duplicate check failed: ' + error.message);
-                    });
+                    ? `📋 최종 프롬프트: "${currentPrompt.substring(0, 100)}..."`
+                    : `📋 Final prompt: "${currentPrompt.substring(0, 100)}..."`);
+                  addLogMessage(currentLanguage === 'ko'
+                    ? `📊 data.json 프롬프트 데이터: ${data.prompts.length}개`
+                    : `📊 data.json prompt data: ${data.prompts.length} items`);
+                  
+                  // 최종 프롬프트로만 중복 검사 실행
+                  const result = checkPromptDuplication(currentPrompt, data.prompts);
+                  
+                  // 중복 검사 결과를 전역 변수에 저장
+                  window.lastDuplicationResult = result;
+                  
+                  // 최종 프롬프트 검증 실패 시 다음 단계로 진행하지 않음
+                  if (result.validationError) {
+                    addLogMessage(currentLanguage === 'ko'
+                      ? `❌ 최종 프롬프트 검증 실패: ${result.validationError}`
+                      : `❌ Final prompt validation failed: ${result.validationError}`);
+                    addLogMessage(currentLanguage === 'ko'
+                      ? `🚫 오류 코드: ${result.errorCode}`
+                      : `🚫 Error code: ${result.errorCode}`);
+                    addLogMessage(currentLanguage === 'ko'
+                      ? '⏹️ 최종 프롬프트에 문제가 있어 다음 단계로 진행하지 않습니다.'
+                      : '⏹️ Cannot proceed to next step due to final prompt issues.');
+                    
+                    // 상태를 초기화하여 다음 루프에서 다시 시도
+                    trackedSetTimeout(() => {
+                      updateProgressStep(3, 'fail');
+                      mainLoopState = 0; // 처음부터 다시 시작
+                      addLogMessage(currentLanguage === 'ko' 
+                        ? '🔄 최종 프롬프트 검증 실패로 인한 상태 초기화: 3 → 0'
+                        : '🔄 State reset due to final prompt validation failure: 3 → 0');
+                      isPaused = false;
+                    }, MAIN_LOOP_INTERVAL);
+                    return; // 다음 단계로 진행하지 않음
+                  }
+                  
+                  // 최종 프롬프트가 유효한 경우에만 중복 검사 결과 처리
+                  if (result.isDuplicate) {
+                    addLogMessage(currentLanguage === 'ko'
+                      ? `⚠️ 중복 프롬프트 발견: ${result.matchRatio.toFixed(1)}% 매칭`
+                      : `⚠️ Duplicate prompt found: ${result.matchRatio.toFixed(1)}% match`);
+                    addLogMessage(currentLanguage === 'ko'
+                      ? `📝 매칭된 단어들: ${result.matchedWords.join(', ')}`
+                      : `📝 Matched words: ${result.matchedWords.join(', ')}`);
+                    addLogMessage(currentLanguage === 'ko'
+                      ? `📋 매칭된 프롬프트: "${result.matchedPrompt.substring(0, 50)}..."`
+                      : `📋 Matched prompt: "${result.matchedPrompt.substring(0, 50)}..."`);
+                  } else {
+                    addLogMessage(currentLanguage === 'ko' ? '✅ 중복 없음 - 유효한 새로운 프롬프트' : '✅ No duplicates - valid new prompt');
+                  }
                 } else {
-                  addLogMessage(currentLanguage === 'ko' ? '❌ 중복 검사 건너뜀: currentPrompt 또는 data.prompts가 유효하지 않음' : '❌ Skipping duplicate check: currentPrompt or data.prompts is invalid');
+                  addLogMessage(currentLanguage === 'ko' 
+                    ? '❌ 중복 검사 불가: currentPrompt 또는 data.prompts가 유효하지 않음' 
+                    : '❌ Cannot perform duplicate check: currentPrompt or data.prompts is invalid');
                   addLogMessage(currentLanguage === 'ko'
                     ? `   currentPrompt: ${currentPrompt ? '존재함' : '없음'}`
                     : `   currentPrompt: ${currentPrompt ? 'exists' : 'none'}`);
                   addLogMessage(currentLanguage === 'ko'
                     ? `   data.prompts: ${data.prompts ? (Array.isArray(data.prompts) ? `${data.prompts.length}개` : '배열아님') : '없음'}`
                     : `   data.prompts: ${data.prompts ? (Array.isArray(data.prompts) ? `${data.prompts.length} items` : 'not array') : 'none'}`);
+                  
+                  // 최종 프롬프트가 없으면 다음 단계로 진행하지 않음
+                  if (!currentPrompt) {
+                    addLogMessage(currentLanguage === 'ko'
+                      ? '⏹️ 최종 프롬프트가 없어 다음 단계로 진행하지 않습니다.'
+                      : '⏹️ Cannot proceed to next step without final prompt.');
+                    
+                    trackedSetTimeout(() => {
+                      updateProgressStep(3, 'warning');
+                      mainLoopState = 0; // 처음부터 다시 시작
+                      addLogMessage(currentLanguage === 'ko' 
+                        ? '🔄 최종 프롬프트 부재로 인한 상태 초기화: 3 → 0'
+                        : '🔄 State reset due to missing final prompt: 3 → 0');
+                      isPaused = false;
+                    }, MAIN_LOOP_INTERVAL);
+                    return; // 다음 단계로 진행하지 않음
+                  }
                 }
               } else {
                 addLogMessage(currentLanguage === 'ko' ? '❌ data.json에 프롬프트가 없음' : '❌ No prompts in data.json');
@@ -1215,15 +1385,158 @@ function mainLoop() {
             })
             .catch(error => {
               addLogMessage(currentLanguage === 'ko' ? '❌ data.json 로드 실패: ' + error.message : '❌ data.json load failed: ' + error.message);
+              addLogMessage(currentLanguage === 'ko' ? '💡 기본 데이터로 중복 검사를 건너뜁니다.' : '💡 Skipping duplicate check with default data.');
+              
+              // 기본 프롬프트 데이터 생성
+              const defaultData = {
+                prompts: [
+                  {
+                    title: "기본 프롬프트",
+                    content: "기본 데이터 - 중복 검사 불가",
+                    category: "default"
+                  }
+                ],
+                metadata: {
+                  created: new Date().toISOString(),
+                  totalPrompts: 1,
+                  source: "default_fallback"
+                }
+              };
+              
+              // 전역 변수에 기본 데이터 저장
+              window.lastPromptData = defaultData;
+              addLogMessage(currentLanguage === 'ko' ? '✅ 기본 데이터 로드 완료' : '✅ Default data loaded');
+              
+              // data.json 로드 실패 시에도 최종 프롬프트 검증은 필요
+              if (currentPrompt) {
+                // 최종 프롬프트 유효성 검사
+                const validation = validateFinalPrompt(currentPrompt);
+                
+                if (!validation.isValid) {
+                  addLogMessage(currentLanguage === 'ko'
+                    ? `❌ data.json 로드 실패했지만 최종 프롬프트도 유효하지 않음: ${validation.error}`
+                    : `❌ data.json load failed and final prompt is also invalid: ${validation.error}`);
+                  addLogMessage(currentLanguage === 'ko'
+                    ? '⏹️ 최종 프롬프트 검증 실패로 다음 단계로 진행하지 않습니다.'
+                    : '⏹️ Cannot proceed to next step due to final prompt validation failure.');
+                  
+                  // 상태를 초기화하여 다음 루프에서 다시 시도
+                  trackedSetTimeout(() => {
+                    updateProgressStep(3, 'fail');
+                    mainLoopState = 0; // 처음부터 다시 시작
+                    addLogMessage(currentLanguage === 'ko' 
+                      ? '🔄 data.json 로드 실패 + 최종 프롬프트 검증 실패로 상태 초기화: 3 → 0'
+                      : '🔄 State reset due to data.json load failure + final prompt validation failure: 3 → 0');
+                    isPaused = false;
+                  }, MAIN_LOOP_INTERVAL);
+                  return; // 다음 단계로 진행하지 않음
+                }
+                
+                // 최종 프롬프트가 유효하면 중복 검사를 건너뛰고 진행
+                addLogMessage(currentLanguage === 'ko' ? '⏭️ 중복 검사 건너뜀 - 유효한 새로운 프롬프트로 처리' : '⏭️ Skipping duplicate check - treating as valid new prompt');
+                window.lastDuplicationResult = {
+                  isDuplicate: false,
+                  matches: [],
+                  similarity: 0,
+                  note: "data.json 로드 실패로 중복 검사 건너뜀, 최종 프롬프트는 유효함"
+                };
+              } else {
+                addLogMessage(currentLanguage === 'ko'
+                  ? '❌ data.json 로드 실패 + 최종 프롬프트 없음'
+                  : '❌ data.json load failed + no final prompt');
+                addLogMessage(currentLanguage === 'ko'
+                  ? '⏹️ 최종 프롬프트가 없어 다음 단계로 진행하지 않습니다.'
+                  : '⏹️ Cannot proceed to next step without final prompt.');
+                
+                // 상태를 초기화하여 다음 루프에서 다시 시도
+                trackedSetTimeout(() => {
+                  updateProgressStep(3, 'warning');
+                  mainLoopState = 0; // 처음부터 다시 시작
+                  addLogMessage(currentLanguage === 'ko' 
+                    ? '🔄 data.json 로드 실패 + 최종 프롬프트 부재로 상태 초기화: 3 → 0'
+                    : '🔄 State reset due to data.json load failure + missing final prompt: 3 → 0');
+                  isPaused = false;
+                }, MAIN_LOOP_INTERVAL);
+                return; // 다음 단계로 진행하지 않음
+              }
             });
         } else {
-          addLogMessage(currentLanguage === 'ko' ? '❌ data.json URL을 가져올 수 없음' : '❌ Cannot get data.json URL');
+          addLogMessage(currentLanguage === 'ko' ? '❌ data.json URL을 가져올 수 없음 - 확장 프로그램 컨텍스트 무효화됨' : '❌ Cannot get data.json URL - extension context invalidated');
+          
+          // 컨텍스트 무효화 처리
+          handleContextInvalidation();
+          
+          // 기본 데이터로 대체하여 계속 진행
+          addLogMessage(currentLanguage === 'ko' ? '💡 기본 데이터로 대체하여 진행합니다.' : '💡 Proceeding with default data.');
+          
+          const defaultData = {
+            prompts: [
+              {
+                title: "기본 프롬프트",
+                content: "기본 데이터 - 확장 프로그램 컨텍스트 무효화로 인한 대체",
+                category: "default"
+              }
+            ],
+            metadata: {
+              created: new Date().toISOString(),
+              totalPrompts: 1,
+              source: "context_invalidated_fallback"
+            }
+          };
+          
+          // 전역 변수에 기본 데이터 저장
+          window.lastPromptData = defaultData;
+          
+          // 최종 프롬프트가 있으면 검증 후 진행
+          if (currentPrompt) {
+            const validation = validateFinalPrompt(currentPrompt);
+            
+            if (validation.isValid) {
+              addLogMessage(currentLanguage === 'ko' ? '✅ 최종 프롬프트는 유효함 - 기본 데이터로 진행' : '✅ Final prompt is valid - proceeding with default data');
+              window.lastDuplicationResult = {
+                isDuplicate: false,
+                matches: [],
+                similarity: 0,
+                note: "확장 프로그램 컨텍스트 무효화로 중복 검사 건너뜀"
+              };
+            } else {
+              addLogMessage(currentLanguage === 'ko'
+                ? `❌ 최종 프롬프트도 유효하지 않음: ${validation.error}`
+                : `❌ Final prompt is also invalid: ${validation.error}`);
+              
+              // 상태 초기화
+              trackedSetTimeout(() => {
+                updateProgressStep(3, 'fail');
+                mainLoopState = 0;
+                addLogMessage(currentLanguage === 'ko' 
+                  ? '🔄 컨텍스트 무효화 + 최종 프롬프트 검증 실패로 상태 초기화: 3 → 0'
+                  : '🔄 State reset due to context invalidation + final prompt validation failure: 3 → 0');
+                isPaused = false;
+              }, MAIN_LOOP_INTERVAL);
+              return;
+            }
+          } else {
+            addLogMessage(currentLanguage === 'ko' ? '❌ 최종 프롬프트도 없음' : '❌ No final prompt either');
+            
+            // 상태 초기화
+            trackedSetTimeout(() => {
+              updateProgressStep(3, 'warning');
+              mainLoopState = 0;
+              addLogMessage(currentLanguage === 'ko' 
+                ? '🔄 컨텍스트 무효화 + 최종 프롬프트 부재로 상태 초기화: 3 → 0'
+                : '🔄 State reset due to context invalidation + missing final prompt: 3 → 0');
+              isPaused = false;
+            }, MAIN_LOOP_INTERVAL);
+            return;
+          }
         }
         
         trackedSetTimeout(() => {
           updateProgressStep(3, 'success');
+          addLogMessage(currentLanguage === 'ko' ? '✅ case 3 완료 - 중복 검사 단계 끝' : '✅ Case 3 completed - duplicate check stage finished');
           mainLoopState = 4;
-          addLogMessage('🔄 상태 변경: 3→4');
+          addLogMessage(currentLanguage === 'ko' ? '🔄 상태 변경: 3→4' : '🔄 State change: 3→4');
+          addLogMessage(currentLanguage === 'ko' ? '🎨 이미지 생성 단계로 진행' : '🎨 Proceeding to image generation stage');
           isPaused = false;
         }, MAIN_LOOP_INTERVAL);
       }, MAIN_LOOP_INTERVAL);
@@ -1232,7 +1545,16 @@ function mainLoop() {
     case 4: // 중복 검사 후 이미지 생성 상태 (딜레이 적용)
       updateProgressStep(4);
       isPaused = true;
-      addLogMessage('🎨 Step 5: 중복 검사 후 이미지 생성 처리 중...');
+      addLogMessage(currentLanguage === 'ko' ? '🎯 case 4 진입 - 이미지 생성 단계 시작' : '🎯 Entering case 4 - image generation stage started');
+      addLogMessage(currentLanguage === 'ko' ? '🎨 Step 5: 중복 검사 후 이미지 생성 처리 중...' : '🎨 Step 5: Processing image generation after duplicate check...');
+      // 중복 검사 결과 확인 로그
+      if (window.lastDuplicationResult) {
+        addLogMessage(currentLanguage === 'ko' 
+          ? `📊 중복 검사 결과: ${window.lastDuplicationResult.isDuplicate ? '중복됨' : '중복 없음'}`
+          : `📊 Duplicate check result: ${window.lastDuplicationResult.isDuplicate ? 'Duplicate found' : 'No duplicates'}`);
+      } else {
+        addLogMessage(currentLanguage === 'ko' ? '⚠️ 중복 검사 결과 없음' : '⚠️ No duplicate check result');
+      }
       trackedSetTimeout(() => {
         // 이미지 생성 중인지 확인
         const soraSpinner = document.querySelector('svg[viewBox="0 0 120 120"] circle[class*="animate-spin"]');
@@ -1382,7 +1704,7 @@ function generateImageFromPrompt() {
       return;
     }
     
-    // data.json에서 프롬프트 가져오기
+    // data.json에서 프롬프트 가져오기 (항상 data.json 프롬프트 사용)
     if (!window.lastPromptData || !window.lastPromptData.prompts || window.lastPromptData.prompts.length === 0) {
       addLogMessage('❌ data.json 프롬프트 데이터가 없음');
       return;
@@ -1396,6 +1718,8 @@ function generateImageFromPrompt() {
       addLogMessage('❌ data.json에서 유효한 프롬프트를 찾을 수 없음');
       return;
     }
+    
+    addLogMessage('🎯 data.json 프롬프트를 사용하여 이미지 생성');
     
     addLogMessage(`📝 사용할 프롬프트: "${promptToUse.substring(0, 50)}..."`);
     
@@ -1854,7 +2178,23 @@ function promptMonitoringStep() {
             .catch(error => {
               addLogMessage('❌ 프롬프트 데이터 로드 실패: ' + error.message);
               addLogMessage(`🔍 에러 상세: ${error.stack ? error.stack.substring(0, 200) : '스택 없음'}`);
-              monitoringState = 0;
+              
+              // 기본 데이터로 대체
+              addLogMessage('💡 기본 데이터로 대체합니다...');
+              promptData = {
+                prompts: [{
+                  title: "기본 프롬프트",
+                  content: "기본 데이터 - 중복 검사 불가",
+                  category: "default"
+                }],
+                metadata: {
+                  created: new Date().toISOString(),
+                  totalPrompts: 1,
+                  source: "monitoring_fallback"
+                }
+              };
+              addLogMessage('✅ 기본 데이터 로드 완료 - 모니터링 계속 진행');
+              monitoringState = 2; // 상태 2로 진행 (0으로 리셋하지 않음)
             });
         } else {
           addLogMessage('❌ 데이터 URL을 가져올 수 없음');
@@ -2163,6 +2503,10 @@ if (document.readyState === 'loading') {
             addLogMessage('📊 자동 모니터링 상태를 확인하세요.');
             addLogMessage('⚙️ 실행주기: 1초');
           }
+          
+          // 좌측 진행 패널도 생성
+          console.log('📊 좌측 진행 패널 자동 생성');
+          createProgressPanel();
         }, 3000);
       } else {
         console.warn('⚠️ 확장 프로그램 컨텍스트가 무효화되어 초기화를 건너뜁니다.');
@@ -2189,12 +2533,196 @@ if (document.readyState === 'loading') {
           addLogMessage('📊 자동 모니터링 상태를 확인하세요.');
           addLogMessage('⚙️ 실행주기: 1초');
         }
+        
+        // 좌측 진행 패널도 생성
+        console.log('📊 좌측 진행 패널 자동 생성');
+        createProgressPanel();
       }, 3000);
     } else {
       console.warn('⚠️ 확장 프로그램 컨텍스트가 무효화되어 초기화를 건너뜁니다.');
     }
   }, 1000);
 } 
+
+// 좌측 진행 단계 패널 생성 함수
+function createProgressPanel() {
+  console.log('📊 좌측 진행 단계 패널 생성 시작...');
+  
+  // 기존 패널 제거
+  const existingPanel = document.getElementById('sora-progress-panel');
+  if (existingPanel) {
+    existingPanel.remove();
+  }
+  
+  // 진행 패널 생성
+  const progressPanel = document.createElement('div');
+  progressPanel.id = 'sora-progress-panel';
+  progressPanel.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 320px;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    z-index: 9998;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: white;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    animation: slideInFromLeft 0.5s ease-out;
+  `;
+  
+  // 애니메이션 CSS 추가
+  if (!document.getElementById('progress-panel-styles')) {
+    const style = document.createElement('style');
+    style.id = 'progress-panel-styles';
+    style.textContent = `
+      @keyframes slideInFromLeft {
+        from { opacity: 0; transform: translateX(-100%); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  // 패널 내용
+  progressPanel.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h3 style="margin: 0; font-size: 16px; font-weight: 600;">📊 진행 단계</h3>
+      <button id="progress-minimize" style="background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px;">−</button>
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+      <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">현재 단계</div>
+      <div id="current-step" style="background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px; font-size: 13px;">
+        ✅ 확장 프로그램 로드 완료
+      </div>
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+      <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">수집 현황</div>
+      <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px;">
+        <div style="margin-bottom: 5px; font-size: 12px;">
+          📸 정상 이미지: <span id="normal-image-count">0</span>개
+        </div>
+        <div style="margin-bottom: 5px; font-size: 12px;">
+          ⚠️ 정책 위반: <span id="policy-violation-count">0</span>개  
+        </div>
+        <div style="font-size: 12px;">
+          📝 프롬프트: <span id="prompt-count">0</span>개
+        </div>
+      </div>
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+      <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">자동 모드 상태</div>
+      <div style="background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px; font-size: 12px;">
+        <div id="auto-mode-status">🔴 자동 모드: OFF</div>
+        <div id="mainloop-status">⏹️ MainLoop: 중지됨</div>
+      </div>
+    </div>
+    
+    <div>
+      <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">다음 단계</div>
+      <div id="next-step" style="background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px; font-size: 12px;">
+        🎯 자동 모드를 켜서 모니터링을 시작하세요
+      </div>
+    </div>
+  `;
+  
+  // 패널을 페이지에 추가
+  document.body.appendChild(progressPanel);
+  
+  // 최소화 버튼 이벤트
+  document.getElementById('progress-minimize').addEventListener('click', function() {
+    const panel = document.getElementById('sora-progress-panel');
+    if (panel.style.height === '60px') {
+      // 확장
+      panel.style.height = 'auto';
+      Array.from(panel.children).forEach((child, index) => {
+        if (index > 0) child.style.display = 'block';
+      });
+      this.textContent = '−';
+    } else {
+      // 최소화
+      panel.style.height = '60px';
+      Array.from(panel.children).forEach((child, index) => {
+        if (index > 0) child.style.display = 'none';
+      });
+      this.textContent = '+';
+    }
+  });
+  
+  console.log('✅ 좌측 진행 단계 패널 생성 완료');
+  
+  // 초기 데이터 업데이트
+  updateProgressPanelData();
+}
+
+// 진행 패널 데이터 업데이트 함수
+function updateProgressPanelData() {
+  try {
+    // 진행 패널이 존재하는지 확인
+    const progressPanel = document.getElementById('sora-progress-panel');
+    if (!progressPanel) {
+      return; // 패널이 없으면 업데이트하지 않음
+    }
+    
+    // 페이지에서 실제 콘텐츠 카운트
+    const normalImages = document.querySelectorAll('img[src*="videos.openai.com"], img[src*="openai"]').length;
+    const policyViolations = document.querySelectorAll('.lucide-alert-circle').length;
+    const totalPrompts = document.querySelectorAll('[class*="text-token-text-primary"]').length;
+    
+    // UI 업데이트
+    const normalImageEl = document.getElementById('normal-image-count');
+    const policyViolationEl = document.getElementById('policy-violation-count'); 
+    const promptCountEl = document.getElementById('prompt-count');
+    const currentStepEl = document.getElementById('current-step');
+    const nextStepEl = document.getElementById('next-step');
+    const autoModeStatusEl = document.getElementById('auto-mode-status');
+    const mainloopStatusEl = document.getElementById('mainloop-status');
+    
+    if (normalImageEl) normalImageEl.textContent = normalImages;
+    if (policyViolationEl) policyViolationEl.textContent = policyViolations;
+    if (promptCountEl) promptCountEl.textContent = totalPrompts;
+    
+    // 현재 단계 업데이트
+    if (currentStepEl) {
+      if (typeof isGlobalIntervalRunning !== 'undefined' && isGlobalIntervalRunning) {
+        const counter = typeof monitoringCounter !== 'undefined' ? monitoringCounter : 0;
+        const state = typeof mainLoopState !== 'undefined' ? mainLoopState : 0;
+        currentStepEl.innerHTML = `🔄 MainLoop 실행 중 (${counter}/1000, 상태:${state})`;
+      } else {
+        currentStepEl.innerHTML = '✅ 확장 프로그램 로드 완료';
+      }
+    }
+    
+    // 다음 단계 업데이트
+    if (nextStepEl) {
+      if (typeof isGlobalIntervalRunning !== 'undefined' && isGlobalIntervalRunning) {
+        nextStepEl.innerHTML = '🔍 프롬프트 모니터링 진행 중...';
+      } else {
+        nextStepEl.innerHTML = '🎯 자동 모드를 켜서 모니터링을 시작하세요';
+      }
+    }
+    
+    // 자동 모드 상태 업데이트
+    if (autoModeStatusEl) {
+      const isRunning = typeof isGlobalIntervalRunning !== 'undefined' && isGlobalIntervalRunning;
+      autoModeStatusEl.innerHTML = isRunning ? '🟢 자동 모드: ON' : '🔴 자동 모드: OFF';
+    }
+    
+    if (mainloopStatusEl) {
+      const isRunning = typeof isGlobalIntervalRunning !== 'undefined' && isGlobalIntervalRunning;
+      mainloopStatusEl.innerHTML = isRunning ? '▶️ MainLoop: 실행 중' : '⏹️ MainLoop: 중지됨';
+    }
+    
+  } catch (error) {
+    console.warn('진행 패널 데이터 업데이트 중 오류:', error);
+  }
+}
 
 // 로그 오버레이 생성 함수
 function createLogOverlay() {
@@ -2253,6 +2781,9 @@ function createLogOverlay() {
       // 언어 설정에 따라 즉시 업데이트
       setTimeout(() => {
         updateAutoModeButton();
+        if (typeof updateProgressPanelData === 'function') {
+          updateProgressPanelData(); // 진행 패널도 즉시 업데이트
+        }
       }, 100);
       addLogMessage(currentLanguage === 'ko' ? '⏹️ 자동 모드 중지됨' : '⏹️ Auto mode stopped');
     } else {
@@ -2260,6 +2791,9 @@ function createLogOverlay() {
       // 언어 설정에 따라 즉시 업데이트
       setTimeout(() => {
         updateAutoModeButton();
+        if (typeof updateProgressPanelData === 'function') {
+          updateProgressPanelData(); // 진행 패널도 즉시 업데이트
+        }
       }, 100);
       addLogMessage(currentLanguage === 'ko' ? '▶️ 자동 모드 시작됨' : '▶️ Auto mode started');
     }
@@ -2500,6 +3034,10 @@ function translateLogMessage(message) {
       '🔍 확장 프로그램 컨텍스트 검증:': '🔍 확장 프로그램 컨텍스트 검증:',
       '❌ 확장 프로그램 컨텍스트 검증 실패:': '❌ 확장 프로그램 컨텍스트 검증 실패:',
       '⚠️ 확장 프로그램 컨텍스트가 무효화되어 메시지 전송을 건너뜁니다.': '⚠️ 확장 프로그램 컨텍스트가 무효화되어 메시지 전송을 건너뜁니다.',
+      '⚠️ 확장 프로그램 컨텍스트가 무효화됨 - 설정 저장 건너뜀': '⚠️ 확장 프로그램 컨텍스트가 무효화됨 - 설정 저장 건너뜀',
+      '⚠️ 확장 프로그램 컨텍스트가 무효화됨 - 페이지를 새로고침해주세요.': '⚠️ 확장 프로그램 컨텍스트가 무효화됨 - 페이지를 새로고침해주세요.',
+      '⚠️ 확장 프로그램 컨텍스트가 무효화되어 설정을 저장할 수 없습니다. 페이지를 새로고침해주세요.': '⚠️ 확장 프로그램 컨텍스트가 무효화되어 설정을 저장할 수 없습니다. 페이지를 새로고침해주세요.',
+      '💾 모니터링 설정 자동 저장 완료': '💾 모니터링 설정 자동 저장 완료',
       '❌ 메시지 전송 실패:': '❌ 메시지 전송 실패:',
       '메시지 전송 시간 초과': '메시지 전송 시간 초과',
       '🔍 getRuntimeURL 호출:': '🔍 getRuntimeURL 호출:',
@@ -2510,15 +3048,15 @@ function translateLogMessage(message) {
       // 프롬프트 모니터링 관련
       '🔍 Sora 페이지에서 현재 프롬프트 검색 중...': '🔍 Sora 페이지에서 현재 프롬프트 검색 중...',
       '📊 자동 모니터링 설정 복원:': '📊 자동 모니터링 설정 복원:',
-      '⚙️ 실행주기를 1초로 강제 설정': '⚙️ 실행주기를 1초로 강제 설정',
+      '⚙️ 실행주기를 5초로 강제 설정': '⚙️ 실행주기를 5초로 강제 설정',
       '⚠️ 확장 프로그램 컨텍스트가 무효화되어 기본값(true)으로 설정': '⚠️ 확장 프로그램 컨텍스트가 무효화되어 기본값(true)으로 설정',
       '🔄 카운터 초기화됨': '🔄 카운터 초기화됨',
       '✅ 콘텐츠 스크립트 로드 완료': '✅ 콘텐츠 스크립트 로드 완료',
-      '⚙️ 실행주기를 1초로 설정': '⚙️ 실행주기를 1초로 설정',
+      '⚙️ 실행주기를 5초로 설정': '⚙️ 실행주기를 5초로 설정',
       '🔧 테스트용 로그 오버레이 자동 생성': '🔧 테스트용 로그 오버레이 자동 생성',
       '🔧 테스트용으로 자동 생성된 로그 오버레이입니다.': '🔧 테스트용으로 자동 생성된 로그 오버레이입니다.',
       '📊 자동 모니터링 상태를 확인하세요.': '📊 자동 모니터링 상태를 확인하세요.',
-      '⚙️ 실행주기: 1초': '⚙️ 실행주기: 1초',
+      '⚙️ 실행주기: 5초': '⚙️ 실행주기: 5초',
       
       // 메인 루프 관련
       '🔄 메인 루프 시작': '🔄 메인 루프 시작',
@@ -2574,7 +3112,39 @@ function translateLogMessage(message) {
       
       // 언어 변경
       '🌐 언어가 한국어로 변경되었습니다': '🌐 언어가 한국어로 변경되었습니다',
-      '🌐 언어가 영어로 변경되었습니다': '🌐 언어가 영어로 변경되었습니다'
+      '🌐 언어가 영어로 변경되었습니다': '🌐 언어가 영어로 변경되었습니다',
+      
+      // 디버깅 메시지
+      '🔧 중복 검사 단계로 강제 진행': '🔧 중복 검사 단계로 강제 진행',
+      '🎯 case 3 진입 - 중복 검사 단계 시작': '🎯 case 3 진입 - 중복 검사 단계 시작',
+      '✅ case 3 완료 - 중복 검사 단계 끝': '✅ case 3 완료 - 중복 검사 단계 끝',
+      '🎨 이미지 생성 단계로 진행': '🎨 이미지 생성 단계로 진행',
+      '🎯 case 4 진입 - 이미지 생성 단계 시작': '🎯 case 4 진입 - 이미지 생성 단계 시작',
+      '⚠️ 중복 검사 결과 없음': '⚠️ 중복 검사 결과 없음',
+      '🎯 data.json 프롬프트를 사용하여 이미지 생성': '🎯 data.json 프롬프트를 사용하여 이미지 생성',
+      
+      // 최종 프롬프트 검증 관련 (단순화됨)
+      '🔍 최종 프롬프트 기반 중복 검사 시작...': '🔍 최종 프롬프트 기반 중복 검사 시작...',
+      '⏹️ 최종 프롬프트에 문제가 있어 다음 단계로 진행하지 않습니다.': '⏹️ 최종 프롬프트에 문제가 있어 다음 단계로 진행하지 않습니다.',
+      '⏹️ 최종 프롬프트가 없어 다음 단계로 진행하지 않습니다.': '⏹️ 최종 프롬프트가 없어 다음 단계로 진행하지 않습니다.',
+      '✅ 중복 없음 - 유효한 새로운 프롬프트': '✅ 중복 없음 - 유효한 새로운 프롬프트',
+      '❌ 중복 검사 불가: currentPrompt 또는 data.prompts가 유효하지 않음': '❌ 중복 검사 불가: currentPrompt 또는 data.prompts가 유효하지 않음',
+      '❌ 최종 프롬프트 검증 실패:': '❌ 최종 프롬프트 검증 실패:',
+      '🚫 오류 코드:': '🚫 오류 코드:',
+      '🔄 최종 프롬프트 검증 실패로 인한 상태 초기화: 3 → 0': '🔄 최종 프롬프트 검증 실패로 인한 상태 초기화: 3 → 0',
+      '🔄 최종 프롬프트 부재로 인한 상태 초기화: 3 → 0': '🔄 최종 프롬프트 부재로 인한 상태 초기화: 3 → 0',
+      
+      // data.json 로드 실패 + 최종 프롬프트 검증
+      '❌ data.json 로드 실패했지만 최종 프롬프트도 유효하지 않음:': '❌ data.json 로드 실패했지만 최종 프롬프트도 유효하지 않음:',
+      '⏭️ 중복 검사 건너뜀 - 유효한 새로운 프롬프트로 처리': '⏭️ 중복 검사 건너뜀 - 유효한 새로운 프롬프트로 처리',
+      '❌ data.json 로드 실패 + 최종 프롬프트 없음': '❌ data.json 로드 실패 + 최종 프롬프트 없음',
+      '🔄 data.json 로드 실패 + 최종 프롬프트 검증 실패로 상태 초기화: 3 → 0': '🔄 data.json 로드 실패 + 최종 프롬프트 검증 실패로 상태 초기화: 3 → 0',
+      '🔄 data.json 로드 실패 + 최종 프롬프트 부재로 상태 초기화: 3 → 0': '🔄 data.json 로드 실패 + 최종 프롬프트 부재로 상태 초기화: 3 → 0',
+      
+      // 단순화된 검증 메시지
+      '최종 프롬프트가 존재하지 않습니다.': '최종 프롬프트가 존재하지 않습니다.',
+      '최종 프롬프트가 공백만 있습니다.': '최종 프롬프트가 공백만 있습니다.',
+      '최종 프롬프트가 무의미한 내용입니다 (시간, URL 등).': '최종 프롬프트가 무의미한 내용입니다 (시간, URL 등).'
     },
     en: {
       // 기본 시스템 메시지
@@ -2590,6 +3160,10 @@ function translateLogMessage(message) {
       '🔍 확장 프로그램 컨텍스트 검증:': '🔍 Extension context validation:',
       '❌ 확장 프로그램 컨텍스트 검증 실패:': '❌ Extension context validation failed:',
       '⚠️ 확장 프로그램 컨텍스트가 무효화되어 메시지 전송을 건너뜁니다.': '⚠️ Extension context invalidated, skipping message send',
+      '⚠️ 확장 프로그램 컨텍스트가 무효화됨 - 설정 저장 건너뜀': '⚠️ Extension context invalidated - skipping settings save',
+      '⚠️ 확장 프로그램 컨텍스트가 무효화됨 - 페이지를 새로고침해주세요.': '⚠️ Extension context invalidated - please refresh the page.',
+      '⚠️ 확장 프로그램 컨텍스트가 무효화되어 설정을 저장할 수 없습니다. 페이지를 새로고침해주세요.': '⚠️ Extension context invalidated - cannot save settings. Please refresh the page.',
+      '💾 모니터링 설정 자동 저장 완료': '💾 Monitoring settings auto-save completed',
       '❌ 메시지 전송 실패:': '❌ Message send failed:',
       '메시지 전송 시간 초과': 'Message send timeout',
       '🔍 getRuntimeURL 호출:': '🔍 getRuntimeURL call:',
@@ -2600,15 +3174,15 @@ function translateLogMessage(message) {
       // 프롬프트 모니터링 관련
       '🔍 Sora 페이지에서 현재 프롬프트 검색 중...': '🔍 Searching for current prompt in Sora page...',
       '📊 자동 모니터링 설정 복원:': '📊 Auto monitoring settings restored:',
-      '⚙️ 실행주기를 1초로 강제 설정': '⚙️ Forcing execution cycle to 1 second',
+      '⚙️ 실행주기를 5초로 강제 설정': '⚙️ Forcing execution cycle to 5 seconds',
       '⚠️ 확장 프로그램 컨텍스트가 무효화되어 기본값(true)으로 설정': '⚠️ Extension context invalidated, using default (true)',
       '🔄 카운터 초기화됨': '🔄 Counter reset',
       '✅ 콘텐츠 스크립트 로드 완료': '✅ Content script load complete',
-      '⚙️ 실행주기를 1초로 설정': '⚙️ Setting execution cycle to 1 second',
+      '⚙️ 실행주기를 5초로 설정': '⚙️ Setting execution cycle to 5 seconds',
       '🔧 테스트용 로그 오버레이 자동 생성': '🔧 Auto-creating test log overlay',
       '🔧 테스트용으로 자동 생성된 로그 오버레이입니다.': '🔧 This is an auto-generated test log overlay',
       '📊 자동 모니터링 상태를 확인하세요.': '📊 Check auto monitoring status',
-      '⚙️ 실행주기: 1초': '⚙️ Execution cycle: 1 second',
+      '⚙️ 실행주기: 5초': '⚙️ Execution cycle: 5 seconds',
       
       // 메인 루프 관련
       '🔄 메인 루프 시작': '🔄 Main loop started',
@@ -2664,7 +3238,39 @@ function translateLogMessage(message) {
       
       // 언어 변경
       '🌐 언어가 한국어로 변경되었습니다': '🌐 Language changed to Korean',
-      '🌐 언어가 영어로 변경되었습니다': '🌐 Language changed to English'
+      '🌐 언어가 영어로 변경되었습니다': '🌐 Language changed to English',
+      
+      // 디버깅 메시지
+      '🔧 중복 검사 단계로 강제 진행': '🔧 Forcing to duplicate check stage',
+      '🎯 case 3 진입 - 중복 검사 단계 시작': '🎯 Entering case 3 - duplicate check stage started',
+      '✅ case 3 완료 - 중복 검사 단계 끝': '✅ Case 3 completed - duplicate check stage finished',
+      '🎨 이미지 생성 단계로 진행': '🎨 Proceeding to image generation stage',
+      '🎯 case 4 진입 - 이미지 생성 단계 시작': '🎯 Entering case 4 - image generation stage started',
+      '⚠️ 중복 검사 결과 없음': '⚠️ No duplicate check result',
+      '🎯 data.json 프롬프트를 사용하여 이미지 생성': '🎯 Using data.json prompt for image generation',
+      
+      // 최종 프롬프트 검증 관련 (단순화됨)
+      '🔍 최종 프롬프트 기반 중복 검사 시작...': '🔍 Final prompt based duplicate check started...',
+      '⏹️ 최종 프롬프트에 문제가 있어 다음 단계로 진행하지 않습니다.': '⏹️ Cannot proceed to next step due to final prompt issues.',
+      '⏹️ 최종 프롬프트가 없어 다음 단계로 진행하지 않습니다.': '⏹️ Cannot proceed to next step without final prompt.',
+      '✅ 중복 없음 - 유효한 새로운 프롬프트': '✅ No duplicates - valid new prompt',
+      '❌ 중복 검사 불가: currentPrompt 또는 data.prompts가 유효하지 않음': '❌ Cannot perform duplicate check: currentPrompt or data.prompts is invalid',
+      '❌ 최종 프롬프트 검증 실패:': '❌ Final prompt validation failed:',
+      '🚫 오류 코드:': '🚫 Error code:',
+      '🔄 최종 프롬프트 검증 실패로 인한 상태 초기화: 3 → 0': '🔄 State reset due to final prompt validation failure: 3 → 0',
+      '🔄 최종 프롬프트 부재로 인한 상태 초기화: 3 → 0': '🔄 State reset due to missing final prompt: 3 → 0',
+      
+      // data.json 로드 실패 + 최종 프롬프트 검증
+      '❌ data.json 로드 실패했지만 최종 프롬프트도 유효하지 않음:': '❌ data.json load failed and final prompt is also invalid:',
+      '⏭️ 중복 검사 건너뜀 - 유효한 새로운 프롬프트로 처리': '⏭️ Skipping duplicate check - treating as valid new prompt',
+      '❌ data.json 로드 실패 + 최종 프롬프트 없음': '❌ data.json load failed + no final prompt',
+      '🔄 data.json 로드 실패 + 최종 프롬프트 검증 실패로 상태 초기화: 3 → 0': '🔄 State reset due to data.json load failure + final prompt validation failure: 3 → 0',
+      '🔄 data.json 로드 실패 + 최종 프롬프트 부재로 상태 초기화: 3 → 0': '🔄 State reset due to data.json load failure + missing final prompt: 3 → 0',
+      
+      // 단순화된 검증 메시지
+      '최종 프롬프트가 존재하지 않습니다.': 'Final prompt does not exist.',
+      '최종 프롬프트가 공백만 있습니다.': 'Final prompt contains only whitespace.',
+      '최종 프롬프트가 무의미한 내용입니다 (시간, URL 등).': 'Final prompt contains meaningless content (time, URL, etc).'
     }
   };
   
@@ -2706,4 +3312,162 @@ function resetMonitoringState() {
   if (typeof soraSpinnerDetected !== 'undefined') soraSpinnerDetected = false;
   if (typeof lastSpinnerState !== 'undefined') lastSpinnerState = null;
   // 기타 필요 변수 추가 가능
+}
+
+// 확장 프로그램 컨텍스트 유효성 검사 함수
+function isExtensionContextValid() {
+  try {
+    // Chrome 확장 프로그램 API가 존재하는지 확인
+    if (!chrome || !chrome.runtime) {
+      console.log('🔍 확장 프로그램 컨텍스트 검증: chrome.runtime 없음');
+      return false;
+    }
+    
+    // runtime.id가 존재하는지 확인 (컨텍스트가 유효한 경우에만 존재)
+    if (!chrome.runtime.id) {
+      console.log('🔍 확장 프로그램 컨텍스트 검증: chrome.runtime.id 없음');
+      return false;
+    }
+    
+    // lastError가 설정되어 있는지 확인
+    if (chrome.runtime.lastError) {
+      console.log('🔍 확장 프로그램 컨텍스트 검증: lastError 존재 -', chrome.runtime.lastError.message);
+      return false;
+    }
+    
+    // console.log('✅ 확장 프로그램 컨텍스트 유효함');
+    return true;
+    
+  } catch (error) {
+    console.log('❌ 확장 프로그램 컨텍스트 검증 실패:', error.message);
+    return false;
+  }
+}
+
+// Chrome storage 안전 저장 함수 (컨텍스트 무효화 대응)
+function safeStorageSet(data, callback) {
+  try {
+    if (!isExtensionContextValid()) {
+      console.warn('⚠️ 확장 프로그램 컨텍스트가 무효화되어 설정을 저장할 수 없습니다.');
+      if (callback) callback({ success: false, error: 'Extension context invalidated' });
+      return;
+    }
+    
+    chrome.storage.local.set(data, function() {
+      if (chrome.runtime.lastError) {
+        console.error('❌ 설정 저장 실패:', chrome.runtime.lastError.message);
+        if (callback) callback({ success: false, error: chrome.runtime.lastError.message });
+      } else {
+        console.log('💾 설정 저장 성공:', Object.keys(data));
+        if (callback) callback({ success: true });
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ 설정 저장 중 오류:', error);
+    if (callback) callback({ success: false, error: error.message });
+  }
+}
+
+// Chrome storage 안전 로드 함수 (컨텍스트 무효화 대응)
+function safeStorageGet(keys, callback) {
+  try {
+    if (!isExtensionContextValid()) {
+      console.warn('⚠️ 확장 프로그램 컨텍스트가 무효화되어 설정을 로드할 수 없습니다.');
+      if (callback) callback({});
+      return;
+    }
+    
+    chrome.storage.local.get(keys, function(result) {
+      if (chrome.runtime.lastError) {
+        console.error('❌ 설정 로드 실패:', chrome.runtime.lastError.message);
+        if (callback) callback({});
+      } else {
+        console.log('📂 설정 로드 성공:', Object.keys(result));
+        if (callback) callback(result);
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ 설정 로드 중 오류:', error);
+    if (callback) callback({});
+  }
+}
+
+// Chrome runtime URL 안전 생성 함수 (컨텍스트 무효화 대응)
+function getRuntimeURL(path) {
+  try {
+    console.log('🔍 getRuntimeURL 호출:', path);
+    
+    if (!isExtensionContextValid()) {
+      console.warn('⚠️ 확장 프로그램 컨텍스트가 무효화되어 URL을 가져올 수 없습니다.');
+      return null;
+    }
+    
+    const url = chrome.runtime.getURL(path);
+    console.log('🔗 생성된 URL:', url);
+    return url;
+    
+  } catch (error) {
+    console.error('❌ runtime URL 가져오기 실패:', error);
+    return null;
+  }
+}
+
+// 컨텍스트 무효화 복구 함수
+function handleContextInvalidation() {
+  console.warn('⚠️ 확장 프로그램 컨텍스트가 무효화됨 - 페이지를 새로고침해주세요.');
+  
+  // UI에 경고 메시지 표시
+  addLogMessage('⚠️ 확장 프로그램 컨텍스트가 무효화됨 - 페이지를 새로고침해주세요.');
+  
+  // 자동 모니터링 중지
+  if (typeof isAutoMonitoringEnabled !== 'undefined' && isAutoMonitoringEnabled) {
+    console.log('⏹️ 컨텍스트 무효화로 자동 모니터링 중지');
+    if (typeof mainInterval !== 'undefined' && mainInterval) {
+      clearInterval(mainInterval);
+      mainInterval = null;
+    }
+    isAutoMonitoringEnabled = false;
+    updateAutoModeButton();
+  }
+  
+  // 진행률 UI 제거
+  const progressContainer = document.getElementById('image-progress-container');
+  if (progressContainer) {
+    progressContainer.remove();
+  }
+}
+
+// 메시지 전송 안전 함수 (컨텍스트 무효화 대응)
+function safeSendMessage(message, callback) {
+  try {
+    if (!isExtensionContextValid()) {
+      console.warn('⚠️ 확장 프로그램 컨텍스트가 무효화되어 메시지 전송을 건너뜁니다.');
+      if (callback) callback({ success: false, error: 'Extension context invalidated' });
+      return;
+    }
+    
+    // 타임아웃 설정 (5초)
+    const timeoutId = setTimeout(() => {
+      console.error('❌ 메시지 전송 실패: 메시지 전송 시간 초과');
+      if (callback) callback({ success: false, error: '메시지 전송 시간 초과' });
+    }, 5000);
+    
+    chrome.runtime.sendMessage(message, function(response) {
+      clearTimeout(timeoutId);
+      
+      if (chrome.runtime.lastError) {
+        console.error('❌ 메시지 전송 실패:', chrome.runtime.lastError.message);
+        if (callback) callback({ success: false, error: chrome.runtime.lastError.message });
+      } else {
+        console.log('✅ 메시지 전송 성공:', response);
+        if (callback) callback(response || { success: true });
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ 메시지 전송 중 오류:', error);
+    if (callback) callback({ success: false, error: error.message });
+  }
 }

@@ -1,0 +1,35 @@
+{
+  "metadata": {
+    "created_at": "2025-07-28T08:59:41.084Z",
+    "version": "1.0.0",
+    "source": "Sora ChatGPT Auto Save Extension (Page Control)",
+    "total_images": 1,
+    "total_prompts": 1,
+    "download_method": "current_page",
+    "note": "정책 위반 콘텐츠는 url이 빈 값으로 표시됩니다"
+  },
+  "images": [
+    {
+      "id": "img_1753693181082_2",
+      "url": "https://videos.openai.com/vg-assets/assets%2Ftask_01k183qq7ffrm9y0cv610k8bvz%2F1753692847_img_0.webp?st=2025-07-28T07%3A52%3A51Z&se=2025-08-03T08%3A52%3A51Z&sks=b&skt=2025-07-28T07%3A52%3A51Z&ske=2025-08-03T08%3A52%3A51Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=8ebb0df1-a278-4e2e-9c20-f2d373479b3a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=Nznj5kgUQS850cRdQv9goTlRl1YvcYV7RTQ%2BJreGS%2Bg%3D&az=oaivgprodscus",
+      "alt": "Generated image",
+      "width": 1536,
+      "height": 1024,
+      "pageUrl": "https://sora.chatgpt.com/library",
+      "prompt": "한 쌍의 커플이 서로 마주보며 앉아있고, 그들 사이에는 다양한 선택지가 적힌 카드들이 놓여 있다. 각 카드는 '영화 보기 vs. 게임하기', '여행하기 vs. 집에서 쉬기'와 같은 밸런스게임의 주제를 담고 있다. 두 사람은 진지한 표정으로 서로의 선택을 고려하고 있으며, 배경에는 아늑한 카페의 내부와 따뜻한 조명이 비치고 있다.",
+      "title": "밸런스게임의 순간",
+      "dataIndex": "2",
+      "timestamp": "2025-07-28T08:59:41.082Z",
+      "type": "normal"
+    }
+  ],
+  "prompts": [
+    {
+      "id": "prompt_1753693181083_0",
+      "text": "SearchCtrlK",
+      "timestamp": "2025-07-28T08:59:41.083Z",
+      "pageUrl": "https://sora.chatgpt.com/library",
+      "selector": "[class*=\"text\"]"
+    }
+  ]
+}

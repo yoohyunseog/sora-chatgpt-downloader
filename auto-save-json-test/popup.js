@@ -7,20 +7,20 @@ class PopupManagerPro {
 
     async init() {
         try {
-            // Wait for i18n to be ready
-            await this.waitForI18n();
-            
-            // Initialize UI
-            this.initializeUI();
-            
-            // Load saved settings
-            await this.loadSettings();
-            
-            // Set up event listeners
-            this.setupEventListeners();
-            
+        // Wait for i18n to be ready
+        await this.waitForI18n();
+        
+        // Initialize UI
+        this.initializeUI();
+        
+        // Load saved settings
+        await this.loadSettings();
+        
+        // Set up event listeners
+        this.setupEventListeners();
+        
             // Update UI with current language
-            this.updateUI();
+        this.updateUI();
             
             console.log('Popup initialized successfully');
         } catch (error) {
@@ -267,12 +267,12 @@ class PopupManagerPro {
                 // 이미 처리됨
             } else {
                 // 기본적으로 chrome.i18n.getMessage 사용
-                const message = chrome.i18n.getMessage(messageKey);
-                if (message) {
-                    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-                        element.placeholder = message;
-                    } else {
-                        element.textContent = message;
+            const message = chrome.i18n.getMessage(messageKey);
+            if (message) {
+                if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                    element.placeholder = message;
+                } else {
+                    element.textContent = message;
                     }
                 }
             }
@@ -319,14 +319,14 @@ class PopupManagerPro {
         }
         
         if (this.elements.statusMessage && this.elements.statusText) {
-            this.elements.statusMessage.className = `status ${type}`;
-            this.elements.statusText.textContent = message;
-            this.elements.statusMessage.classList.remove('hidden');
-            
-            // Hide status after 3 seconds
-            setTimeout(() => {
-                this.elements.statusMessage.classList.add('hidden');
-            }, 3000);
+        this.elements.statusMessage.className = `status ${type}`;
+        this.elements.statusText.textContent = message;
+        this.elements.statusMessage.classList.remove('hidden');
+        
+        // Hide status after 3 seconds
+        setTimeout(() => {
+            this.elements.statusMessage.classList.add('hidden');
+        }, 3000);
         }
     }
 }

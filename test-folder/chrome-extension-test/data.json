@@ -1,0 +1,36 @@
+{
+  "name": "Sora Auto Image Downloader - 서초동, 법조계, 드라마, 어쏘 변호사, 성장",
+  "version": "2.2.0",
+  "description": "서초동, 법조계, 드라마, 어쏘 변호사, 성장 주제의 이미지 생성을 위한 프롬프트 모음",
+  "metadata": {
+    "created": "2025-07-28",
+    "lastModified": "2025-07-28",
+    "author": "GPT-4o-mini Auto Generator",
+    "topic": "서초동, 법조계, 드라마, 어쏘 변호사, 성장",
+    "totalPrompts": 1
+  },
+  "prompts": [
+    {
+      "title": "서초동 법조계 드라마 어쏘 변호사의 성장",
+      "category": "기타",
+      "content": "서초동의 법원 앞에서 자신감 넘치는 어쏘 변호사가 서류를 들고 있는 모습. 배경에는 현대적인 법원 건물과 바쁜 거리 풍경이 어우러져 있다. 변호사는 세련된 정장 차림으로, 주변의 다양한 사람들과의 교류를 통해 성장하는 모습을 표현하고 있다. 태양이 비치는 따뜻한 오후, 변호사의 얼굴에는 결단력과 희망이 가득하다.",
+      "tags": [
+        "서초동",
+        "법조계",
+        "변호사",
+        "성장",
+        "드라마"
+      ],
+      "expectedResult": "서초동의 법조계에서 활약하는 어쏘 변호사의 전문성과 성장 과정을 시각적으로 전달하며, 현대적인 법원의 분위기를 잘 표현한 이미지.",
+      "status": "대기"
+    }
+  ],
+  "settings": {
+    "enabled": true,
+    "autoLoad": true,
+    "theme": "dark",
+    "language": "ko"
+  },
+  "images": [],
+  "status": "ready"
+}

@@ -55,9 +55,25 @@ class PopupManager {
 
     async loadSettings() {
         try {
-            // Load language preference
+            // Check if extension context is valid
+            if (!this.isExtensionContextValid()) {
+                console.warn('⚠️ Extension context invalidated - using default language');
+                this.currentLanguage = 'en';
+                if (this.elements.languageSelector) {
+                    this.elements.languageSelector.value = this.currentLanguage;
+                }
+                return;
+            }
+            
+            // Load language preference safely
             const result = await chrome.storage.local.get(['language']);
-            this.currentLanguage = result.language || 'en';
+            
+            if (chrome.runtime.lastError) {
+                console.warn('Failed to load language setting:', chrome.runtime.lastError.message);
+                this.currentLanguage = 'en';
+            } else {
+                this.currentLanguage = result.language || 'en';
+            }
             
             // Set language selector
             if (this.elements.languageSelector) {
@@ -67,6 +83,36 @@ class PopupManager {
             console.log('Settings loaded, current language:', this.currentLanguage);
         } catch (error) {
             console.error('Failed to load settings:', error);
+            this.currentLanguage = 'en'; // Fallback to default
+            if (this.elements.languageSelector) {
+                this.elements.languageSelector.value = this.currentLanguage;
+            }
+        }
+    }
+    
+    // Extension context validation function for popup
+    isExtensionContextValid() {
+        try {
+            if (!chrome || !chrome.runtime) {
+                console.log('🔍 Popup: chrome.runtime 없음');
+                return false;
+            }
+            
+            if (!chrome.runtime.id) {
+                console.log('🔍 Popup: chrome.runtime.id 없음');
+                return false;
+            }
+            
+            if (chrome.runtime.lastError) {
+                console.log('🔍 Popup: lastError 존재 -', chrome.runtime.lastError.message);
+                return false;
+            }
+            
+            return true;
+            
+        } catch (error) {
+            console.log('❌ Popup: 확장 프로그램 컨텍스트 검증 실패:', error.message);
+            return false;
         }
     }
 
@@ -108,8 +154,22 @@ class PopupManager {
         try {
             console.log('Changing language to:', language);
             
-            // Save language preference
+            // Check if extension context is valid before saving
+            if (!this.isExtensionContextValid()) {
+                console.warn('⚠️ Extension context invalidated - cannot save language setting');
+                this.showStatus('error', 'Extension context invalidated. Please refresh the page.');
+                return;
+            }
+            
+            // Save language preference safely
             await chrome.storage.local.set({ language });
+            
+            if (chrome.runtime.lastError) {
+                console.error('Failed to save language setting:', chrome.runtime.lastError.message);
+                this.showStatus('error', 'Failed to save language setting');
+                return;
+            }
+            
             this.currentLanguage = language;
             
             // 즉시 UI 업데이트
