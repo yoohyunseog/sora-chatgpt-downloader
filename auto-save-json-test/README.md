@@ -1,152 +1,171 @@
-# Sora Auto Save Extension
+# 🎨 Sora ChatGPT 자동 저장 확장 프로그램
 
-**Version 1.2.0** - Enhanced Policy Violation Content Support
+Sora ChatGPT 라이브러리 페이지(`https://sora.chatgpt.com/library`)에서 이미지와 프롬프트를 자동으로 수집하고 저장하는 Chrome 확장 프로그램입니다.
 
-A powerful Chrome extension that automatically saves images and prompts from Sora ChatGPT library, including support for policy violation content.
+## ✨ 주요 기능
 
-## 🆕 What's New in v1.2.0
+### 🔄 자동 저장
+- **30초마다 자동 저장**: 설정 가능한 간격으로 자동 저장 (10초~3600초)
+- **실시간 카운트다운**: 다음 저장까지 남은 시간을 실시간으로 표시
+- **실시간 감지**: 페이지 변경 시 자동으로 새 데이터 수집
+- **중복 방지**: 이미 저장된 이미지/프롬프트는 건너뜀
 
-- ✅ **Policy Violation Content Support**: Now collects prompts from policy-restricted content
-- ✅ **Improved Prompt Extraction**: Enhanced algorithm for accurate prompt collection
-- ✅ **Better Error Handling**: More robust error handling and logging
-- ✅ **Enhanced UI**: Improved control panel with better visual feedback
-- ✅ **Multi-language Support**: Korean and English interface
+### 📸 데이터 수집
+- **이미지 수집**: 페이지의 모든 이미지 URL, 크기, alt 텍스트
+- **프롬프트 수집**: 페이지의 모든 프롬프트 텍스트
+- **메타데이터**: 수집 시간, 페이지 URL 등
 
-## 🌟 Key Features
+### 💾 데이터 관리
+- **JSON 다운로드**: 수집된 데이터를 JSON 파일로 다운로드
+- **통계 표시**: 저장된 이미지/프롬프트 개수 실시간 표시
+- **데이터 초기화**: 저장된 모든 데이터 삭제
 
-### 📸 Comprehensive Content Collection
-- **Normal Images**: Full image and prompt data collection
-- **Policy Violation Content**: Prompt extraction with empty URL placeholder
-- **First Content Priority**: Always collects the first available content (data-index order)
+## 🚀 설치 방법
 
-### 🔄 Smart Auto-Save System
-- **15-second intervals**: Configurable auto-save timing
-- **Duplicate detection**: Prevents saving identical content
-- **Real-time monitoring**: Live DOM change detection
+### 1. 확장 프로그램 로드
+1. Chrome 브라우저에서 `chrome://extensions/` 접속
+2. 우측 상단의 **"개발자 모드"** 활성화
+3. **"압축해제된 확장 프로그램을 로드합니다"** 클릭
+4. 이 폴더(`auto-save-json-test`) 선택
 
-### 💾 Advanced Download Options
-- **Auto-download**: Automatic file download after saving
-- **JSON export**: Structured data with metadata
-- **Policy content handling**: Special processing for restricted content
+### 2. 권한 확인
+- **저장소**: 데이터 저장을 위한 권한
+- **탭**: 현재 탭 정보 접근 권한
+- **Sora ChatGPT**: `https://sora.chatgpt.com/*` 도메인 접근 권한
 
-### 🌐 Multi-language Interface
-- **Korean/English**: Full UI translation support
-- **Real-time switching**: Language changes apply immediately
-- **Localized logging**: Translated status messages
+## 📖 사용 방법
 
-## 📋 Data Structure
+### 1. 기본 사용
+1. **Sora ChatGPT 라이브러리 페이지** 접속: `https://sora.chatgpt.com/library`
+2. 확장 프로그램 아이콘 클릭
+3. **자동 저장 토글**을 ON으로 설정
+4. **카운트다운**이 표시되며 30초마다 자동으로 데이터 수집 시작
 
-### Normal Content
+### 2. 카운트다운 기능
+- **실시간 표시**: 다음 저장까지 남은 시간을 초 단위로 표시
+- **자동 재시작**: 저장 완료 후 자동으로 새로운 카운트다운 시작
+- **시각적 피드백**: 그라데이션 배경으로 눈에 잘 띄는 디자인
+
+### 3. 수동 저장
+- **"📸 수동 저장"** 버튼으로 즉시 데이터 수집
+- 페이지 변경 후 즉시 저장하고 싶을 때 사용
+
+### 4. 데이터 다운로드
+- **"💾 JSON 다운로드"** 버튼으로 수집된 데이터 다운로드
+- 파일명: `sora_auto_save_YYYY-MM-DDTHH-MM-SS.json`
+
+### 5. 설정 변경
+- **저장 간격**: 10초~3600초(1시간) 사이로 설정 가능
+- **자동 저장 ON/OFF**: 토글 스위치로 간편하게 제어
+
+## 📊 수집되는 데이터
+
+### 이미지 데이터
 ```json
 {
-  "id": "img_1753676353754_3",
-  "url": "https://videos.openai.com/vg-assets/...",
-  "alt": "Generated image",
-  "width": 1536,
-  "height": 1024,
-  "pageUrl": "https://sora.chatgpt.com/library",
-  "prompt": "Detailed prompt content here...",
-  "title": "Content Title",
-  "dataIndex": "3",
-  "timestamp": "2025-07-28T04:19:13.754Z",
-  "type": "normal"
+  "id": "img_1234567890_0",
+  "url": "https://example.com/image.jpg",
+  "alt": "이미지 설명",
+  "width": 1024,
+  "height": 768,
+  "timestamp": "2025-01-27T12:00:00.000Z",
+  "pageUrl": "https://sora.chatgpt.com/library"
 }
 ```
 
-### Policy Violation Content
+### 프롬프트 데이터
 ```json
 {
-  "id": "policy_1753676353754_1",
-  "url": "",
-  "taskId": "task_01k1755k9nfmev5rscbmaq5wmn",
-  "taskUrl": "https://sora.chatgpt.com/t/task_01k1755k9nfmev5rscbmaq5wmn",
-  "alt": "Policy violation content",
-  "width": 0,
-  "height": 0,
+  "id": "prompt_1234567890_0",
+  "text": "프롬프트 텍스트 내용",
+  "timestamp": "2025-01-27T12:00:00.000Z",
   "pageUrl": "https://sora.chatgpt.com/library",
-  "prompt": "Full prompt text extracted successfully...",
-  "title": "Content Title",
-  "dataIndex": "1",
-  "timestamp": "2025-07-28T04:19:13.754Z",
-  "type": "policy_violation",
-  "note": "Content blocked due to policy violation"
+  "selector": "[data-testid=\"prompt-text\"]"
 }
 ```
 
-## 🚀 Installation
+## 🔧 고급 기능
 
-1. Download the extension files
-2. Open Chrome and go to `chrome://extensions/`
-3. Enable "Developer mode"
-4. Click "Load unpacked" and select the extension folder
-5. Navigate to `https://sora.chatgpt.com/library`
-6. The control panel will appear automatically
+### 실시간 카운트다운
+- **1초마다 업데이트**: 정확한 시간 표시
+- **자동 재시작**: 저장 완료 후 새로운 카운트다운 시작
+- **시각적 디자인**: 그라데이션 배경과 큰 숫자로 가독성 향상
 
-## 💡 Usage Guide
+### DOM 변경 감지
+- 페이지에 새로운 콘텐츠가 추가되면 자동 감지
+- MutationObserver를 사용한 실시간 모니터링
 
-### Control Panel Features
-- **Language Selector**: Switch between Korean/English
-- **Auto Save Toggle**: Enable/disable automatic saving
-- **Auto Download Toggle**: Enable/disable automatic downloads
-- **Manual Save Button**: Save current content immediately
-- **Download Button**: Export saved data as JSON
-- **Live Statistics**: Real-time count of saved content
+### 중복 방지
+- URL 기반 이미지 중복 확인
+- 텍스트 기반 프롬프트 중복 확인
+- 저장 공간 효율적 사용
 
-### Automatic Operation
-1. Enable "Auto Save" toggle
-2. The system will check for new content every 15 seconds
-3. New content is automatically saved and optionally downloaded
-4. Policy violation content prompts are extracted and saved with empty URLs
+### 에러 처리
+- 네트워크 오류, 권한 오류 등 자동 처리
+- 상세한 로그 메시지로 디버깅 지원
 
-### Manual Operation
-1. Click "Manual Save" to save current content
-2. Click "Download" to export all saved data
-3. Files are saved with timestamps for easy organization
+## 📝 로그 확인
 
-## 🔧 Technical Details
+### 개발자 도구에서 로그 확인
+1. **F12** 키로 개발자 도구 열기
+2. **Console** 탭 선택
+3. 확장 프로그램 관련 로그 확인
 
-### Content Detection Algorithm
-1. **Data-index Sorting**: Processes content in chronological order
-2. **Multi-method Extraction**: Uses 3 different prompt extraction methods
-3. **Smart Filtering**: Distinguishes between normal and policy violation content
-4. **Fallback Systems**: Multiple backup methods for reliable data collection
+### 주요 로그 메시지
+- `Sora ChatGPT 콘텐츠 스크립트 로드됨`
+- `이미지 수집 완료: X개 새 이미지`
+- `프롬프트 수집 완료: X개 새 프롬프트`
+- `데이터 저장 완료`
+- `자동 저장 시작: X초 간격`
 
-### Error Handling
-- Extension context validation
-- Safe Chrome API usage
-- Graceful degradation on failures
-- Comprehensive error logging
+## ⚠️ 주의사항
 
-### Performance Optimization
-- Efficient DOM querying
-- Minimal memory footprint
-- Optimized storage operations
-- Smart caching mechanisms
+### 권한 요구사항
+- **저장소 권한**: 데이터 저장을 위해 필요
+- **탭 권한**: 현재 페이지 정보 접근을 위해 필요
+- **Sora ChatGPT 도메인**: 해당 사이트에서만 작동
 
-## 🎯 Use Cases
+### 성능 고려사항
+- **저장 간격**: 너무 짧은 간격(10초 미만)은 성능에 영향
+- **데이터 크기**: 많은 데이터 수집 시 메모리 사용량 증가
+- **네트워크**: 이미지 URL 접근 시 네트워크 사용
 
-### Content Creators
-- Archive generated content for future reference
-- Maintain prompt libraries for consistent style
-- Track content creation history
+### 브라우저 호환성
+- **Chrome 88+**: Manifest V3 지원 필요
+- **다른 브라우저**: Chrome 기반 브라우저에서만 작동
 
-### Researchers
-- Collect data for AI model analysis
-- Study prompt-to-image relationships
-- Archive policy violation patterns
+## 🐛 문제 해결
 
-### Developers
-- Integrate with content management systems
-- Build automated workflows
-- Analyze generation patterns
+### 자동 저장이 작동하지 않는 경우
+1. **페이지 URL 확인**: `https://sora.chatgpt.com/library`인지 확인
+2. **권한 확인**: 확장 프로그램 권한이 허용되었는지 확인
+3. **페이지 새로고침**: F5 키로 페이지 새로고침
+4. **확장 프로그램 재로드**: `chrome://extensions/`에서 재로드
 
-## ⚠️ Important Notes
+### 카운트다운이 표시되지 않는 경우
+1. **자동 저장 ON 확인**: 토글 스위치가 ON 상태인지 확인
+2. **페이지 새로고침**: 페이지를 새로고침하여 콘텐츠 스크립트 재로드
+3. **확장 프로그램 재로드**: 확장 프로그램을 재로드
 
-- **Policy Violation Content**: Images are not accessible, but prompts are fully extracted
-- **Rate Limiting**: Built-in delays prevent server overload
-- **Privacy**: All data is stored locally in your browser
-- **Permissions**: Only accesses Sora ChatGPT domains
+### 데이터가 수집되지 않는 경우
+1. **콘솔 로그 확인**: 개발자 도구에서 오류 메시지 확인
+2. **네트워크 연결**: 인터넷 연결 상태 확인
+3. **페이지 로딩 대기**: 페이지가 완전히 로드될 때까지 대기
 
-## 🛠️ Development
+### JSON 다운로드가 안 되는 경우
+1. **팝업 차단 확인**: 브라우저 팝업 차단 설정 확인
+2. **다운로드 폴더 확인**: 다운로드 폴더 권한 확인
+3. **브라우저 재시작**: Chrome 브라우저 재시작
 
-### File Structure 
+## 📞 지원
+
+문제가 발생하거나 기능 개선 제안이 있으시면:
+1. **콘솔 로그** 확인 후 오류 메시지 기록
+2. **현재 페이지 URL**과 **확장 프로그램 상태** 확인
+3. **재현 단계**를 상세히 기록하여 문의
+
+---
+
+**버전**: 1.0.0  
+**최종 업데이트**: 2025-01-27  
+**지원 브라우저**: Chrome 88+ 

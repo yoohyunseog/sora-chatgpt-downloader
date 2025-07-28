@@ -142,6 +142,54 @@ function performSave() {
   });
 }
 
+// Downloaded file count management function (background)
+function manageDownloadedFiles() {
+  console.log('🧹 background 파일 개수 관리 시작...');
+  try {
+    const oneMonthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    chrome.downloads.search({
+      query: 'sora_auto_save',
+      startedAfter: oneMonthAgo,
+      orderBy: ['-startTime']
+    }, (downloads) => {
+      if (chrome.runtime.lastError) {
+        console.warn('⚠️ 다운로드 기록 검색 실패:', chrome.runtime.lastError);
+        return;
+      }
+      console.log(`📊 background 검색된 파일 개수: ${downloads.length}개`);
+      if (downloads.length > MAX_FILES) {
+        const filesToDelete = downloads.slice(MAX_FILES);
+        console.log(`🗑️ background ${filesToDelete.length}개 파일 기록 삭제`);
+        filesToDelete.forEach((download) => {
+          if (download.id) { // Ensure download.id exists before calling erase
+            chrome.downloads.erase({ id: download.id }, (erasedIds) => {
+              if (chrome.runtime.lastError) {
+                console.warn(`⚠️ 기록 삭제 실패 (${download.filename}):`, chrome.runtime.lastError);
+              } else {
+                console.log(`🗑️ 기록 삭제됨: ${download.filename}`);
+              }
+            });
+            if (download.filename && download.filename.includes('sora_auto_save')) {
+              chrome.downloads.removeFile(download.id, () => {
+                if (chrome.runtime.lastError) {
+                  console.warn(`⚠️ 실제 파일 삭제 실패 (${download.filename}):`, chrome.runtime.lastError);
+                } else {
+                  console.log(`🗑️ 실제 파일 삭제됨: ${download.filename}`);
+                }
+              });
+            }
+          }
+        });
+        console.log(`✅ background 파일 관리 완료: ${MAX_FILES}개로 제한됨`);
+      } else {
+        console.log(`✅ background 파일 개수 적정: ${downloads.length}/${MAX_FILES}`);
+      }
+    });
+  } catch (error) {
+    console.error('❌ background 파일 관리 중 오류:', error);
+  }
+}
+
 // 확장 프로그램 설치/업데이트 시 초기화
 chrome.runtime.onInstalled.addListener(function() {
   console.log('Sora ChatGPT 자동 저장 확장 프로그램이 설치되었습니다.');

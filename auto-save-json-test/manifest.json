@@ -1,16 +1,29 @@
 {
   "manifest_version": 3,
-  "name": "Sora Auto Save",
-  "version": "1.2.0",
-  "description": "Automatically save images and prompts from Sora ChatGPT library with policy violation content support",
+  "name": "__MSG_appName__",
+  "version": "1.1.0",
+  "description": "__MSG_appDescription__",
+  "default_locale": "en",
   "permissions": [
     "storage",
-    "downloads",
-    "activeTab"
+    "tabs",
+    "activeTab",
+    "downloads"
   ],
   "host_permissions": [
     "https://sora.chatgpt.com/*"
   ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon_16.png",
+      "48": "icon_48.png",
+      "128": "icon_128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": ["https://sora.chatgpt.com/*"],
@@ -18,15 +31,9 @@
       "run_at": "document_end"
     }
   ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "Sora Auto Save"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["data.json"],
-      "matches": ["https://sora.chatgpt.com/*"]
-    }
-  ],
-  "default_locale": "en"
+  "icons": {
+    "16": "icon_16.png",
+    "48": "icon_48.png",
+    "128": "icon_128.png"
+  }
 } 
