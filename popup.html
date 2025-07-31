@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Sora ChatGPT Auto Save Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 320px;
+            min-height: 280px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            margin: 10px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .title {
+            color: #4a5568;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .pro-badge {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .language-section {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .language-label {
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .language-selector {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            background: white;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section-title {
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .info-section {
+            text-align: center;
+            padding: 15px;
+            background: #e6fffa;
+            border-radius: 8px;
+            border: 1px solid #81e6d9;
+        }
+
+        .info-text {
+            color: #234e52;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .pro-features {
+            margin-top: 15px;
+            padding: 10px;
+            background: #fff5f5;
+            border-radius: 6px;
+            border: 1px solid #fed7d7;
+        }
+
+        .pro-features h4 {
+            color: #742a2a;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .pro-features ul {
+            color: #742a2a;
+            font-size: 11px;
+            padding-left: 15px;
+        }
+
+        .pro-features li {
+            margin-bottom: 3px;
+        }
+
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .status.info {
+            background: #e6fffa;
+            color: #234e52;
+            border: 1px solid #81e6d9;
+        }
+
+        .status.success {
+            background: #f0fff4;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="title">
+                <span data-i18n="appName">Sora ChatGPT Auto Save Pro</span>
+                <span class="pro-badge">PRO</span>
+            </div>
+            <div class="subtitle" data-i18n="appDescription">Advanced auto save with enhanced features</div>
+        </div>
+
+        <!-- Language Selection -->
+        <div class="language-section">
+            <div class="language-label" data-i18n="language">Language</div>
+            <select id="languageSelector" class="language-selector">
+                <option value="en" data-i18n="english">English</option>
+                <option value="ko" data-i18n="korean">한국어</option>
+            </select>
+        </div>
+
+        <!-- Info Section -->
+        <div class="info-section">
+            <div class="info-text">
+                <strong data-i18n="extensionReady">Extension Ready!</strong><br>
+                <span data-i18n="extensionReadyDesc">The extension is ready to use with all features enabled.</span>
+            </div>
+        </div>
+
+        <!-- Pro Features Info -->
+        <div class="pro-features">
+            <h4 data-i18n="proFeaturesAvailable">Pro Features Available:</h4>
+            <ul>
+                <li data-i18n="advancedAutoSave">Advanced auto save functionality</li>
+                <li data-i18n="smartFiltering">Smart filtering and deduplication</li>
+                <li data-i18n="detailedLogging">Detailed logging and monitoring</li>
+                <li data-i18n="settingsImportExport">Settings import/export</li>
+                <li data-i18n="enhancedUI">Enhanced UI with tabs</li>
+            </ul>
+        </div>
+
+        <!-- Status Message -->
+        <div class="status info hidden" id="statusMessage">
+            <span id="statusText" data-i18n="extensionReady">Extension ready</span>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html> 
